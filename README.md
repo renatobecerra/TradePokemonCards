@@ -1,0 +1,2 @@
+1- Entusiastas en el area de la colección, tienen la necesidad de vender, comprar e intercambiar cartas de forma segura, 
+Fiabilidad de compradores y vendedores, nuestra app web esta basado en un sistema compra venta de cartas basado en el modo mercado igual a igual, asegurando privacidad y confianza del usuario, a diferencia de la forma tan dispersa a lo que los compradores están acostumbrados, mantenemos un catálogo actualizado y fiables al momento de las transacciones.
