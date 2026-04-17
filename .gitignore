@@ -1,0 +1,14 @@
+# Dotnet (Backend)
+bin/
+obj/
+appsettings.Development.json
+
+# Angular (Frontend)
+node_modules/
+dist/
+.angular/
+.vscode/
+
+# Varios
+.DS_Store
+*.log
