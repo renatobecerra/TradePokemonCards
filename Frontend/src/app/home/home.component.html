@@ -1,0 +1,128 @@
+<!-- home.component.html -->
+<div class="main-canvas">
+  
+  <nav class="navbar">
+    <div class="nav-links">
+      <a href="#">Novedades</a>
+      <a href="#">Top Registros</a>
+      <a href="#">FAQ</a>
+      <a href="#">Reseñas</a>
+    </div>
+    <div class="nav-logo">
+      <span class="logo-bracket" [style.color]="cards()[0].color">[</span>POKET<span class="logo-bracket" [style.color]="cards()[0].color">]</span>.
+    </div>
+    <div class="nav-cta">
+      <button class="btn-login">Login</button>
+      <button class="btn-register">Registrarse</button>
+    </div>
+  </nav>
+
+  <main class="immersive-hero">
+    <div class="mesh-gradient" [style.background]="'radial-gradient(at 80% 20%,' + cards()[0].color + '15, transparent 50%)'"></div>
+
+    <div class="hero-content">
+      <header class="hero-text-zone">
+        <div class="eyebrow" [style.color]="cards()[0].color">EL DESTINO PARA COLECCIONISTAS ÉLITE</div>
+        <h1 class="main-title">
+          COLECCIONA. <br>
+          <span class="highlight" [style.color]="cards()[0].color">INTERCAMBIA.</span> <br>
+          EVOLUCIONA.
+        </h1>
+        <p class="hero-subline">
+          La plataforma definitiva diseñada por y para coleccionistas. <br> 
+          Intercambia piezas únicas con seguridad absoluta y un estilo inigualable.
+        </p>
+        <div class="cta-wrap">
+          <button class="btn-primary" [style.background]="cards()[0].color">INICIAR BÚSQUEDA</button>
+          <div class="market-status">
+            <span class="pulse" [style.background]="cards()[0].color"></span>
+            Mercado activo
+          </div>
+        </div>
+      </header>
+
+      <div class="floating-gallery">
+        <div class="gallery-inner">
+          @for (card of cards(); track card.name; let i = $index) {
+            <div class="glass-card" [ngClass]="'c' + (i + 1)" 
+                 [style.opacity]="i === 0 ? '1' : (i === 1 ? '0.1' : (i === 2 ? '0.05' : '0.02'))">
+              
+              <div class="card-inner-glow"></div>
+              
+              @if (i === 0) {
+                <div class="tcg-header">
+                  <span class="pokemon-name">{{ card.name }}</span>
+                  <span class="hp-label" [style.color]="card.color">{{ card.hp }}</span>
+                </div>
+
+                <div class="card-art-frame" [style.background]="'radial-gradient(circle at center,' + card.color + '20, transparent 100%)'">
+                  <img [src]="card.image" [alt]="card.name" class="pokemon-image" 
+                       [style.filter]="'drop-shadow(0 0 20px ' + card.color + '80)'">
+                </div>
+
+                <div class="card-stats">
+                  <div class="stat-row">
+                    <span class="stat-icon" [style.background]="card.color"></span>
+                    <span class="stat-text">{{ card.attack }}</span>
+                    <span class="stat-val">{{ card.damage }}</span>
+                  </div>
+                  <div class="card-footer-info">
+                    <span class="rarity">{{ card.rarity }}</span>
+                    <span class="set-id">{{ card.setId }}</span>
+                  </div>
+                </div>
+                
+                <div class="card-bottom-mono" [style.color]="card.color">VERIFICADO POR POKET</div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Sección Novedades -->
+  <section class="news-section">
+    <header class="section-header">
+      <span class="eyebrow">ÚLTIMAS ACTUALIZACIONES</span>
+      <h2 class="section-title">NOVEDADES.</h2>
+    </header>
+
+    <div class="bento-grid">
+      
+      <div class="bento-item bento-main">
+        <div class="bento-content">
+          <span class="tag">Lorem</span>
+          <h2>Lorem Ipsum.</h2>
+          <p>Lorem Ipsum lorem ipsum.</p>
+        </div>
+        <div class="bento-shape shape-1"></div>
+      </div>
+
+      <div class="bento-item bento-stats">
+        <div class="bento-content">
+          <h3>Lorem</h3>
+          <p>Lorem ipsum.</p>
+        </div>
+        <div class="bento-shape shape-2"></div>
+      </div>
+
+      <div class="bento-item bento-market">
+        <div class="bento-content">
+          <h3>Lorem ipsum.</h3>
+          <p>Lorem ipsum.</p>
+        </div>
+        <div class="bento-shape shape-3"></div>
+      </div>
+
+      <div class="bento-item bento-verify">
+        <div class="bento-content">
+          <h3>Lorem ipsum.</h3>
+          <p>Lorem ipsum.</p>
+        </div>
+        <div class="bento-shape shape-4"></div>
+      </div>
+
+    </div>
+  </section>
+</div>
