@@ -11,10 +11,13 @@ Así, transformamos la experiencia de coleccionar en un proceso simple, seguro y
 ### Frontend
 
 cd Frontend
+
 npm install (si es primera vez que se usa)
+
 npm start
 
 ### Backend
 
 cd Backend
+
 dotnet run
