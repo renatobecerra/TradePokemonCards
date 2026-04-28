@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokeMarket Chile - El Mercado Seguro de Coleccionistas</title>
+    <style>
+        /* Estilos Base y Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #ff0000; /* Rojo Intenso */
+            --secondary-color: #8b0000; /* Rojo Oscuro */
+            --accent-color: #ffffff; 
+            --dark-color: #000000; /* Negro */
+            --bg-color: #0a0a0a; /* Negro un poco más suave para fondo */
+            --card-bg: #1a1a1a; /* Gris muy oscuro para tarjetas */
+            --white: #ffffff;
+            --text-color: #e0e0e0;
+            --shadow: 0 4px 10px rgba(255, 0, 0, 0.1);
+        }
+
+        body {
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            overflow: hidden;
+            padding: 0 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--white);
+            color: var(--dark-color);
+            transform: scale(1.05);
+        }
+
+        section {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Header / Navegación */
+        header {
+            background: var(--dark-color);
+            color: var(--white);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(255, 0, 0, 0.2);
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        header nav ul {
+            display: flex;
+        }
+
+        header nav ul li {
+            margin-left: 20px;
+        }
+
+        header nav ul li a {
+            transition: color 0.3s;
+        }
+
+        header nav ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        /* Home (Hero) */
+        #home {
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://img.freepik.com/premium-photo/abstract-pokeball-background-generative-ai_97167-1249.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 80vh;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        #home h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            color: var(--white);
+        }
+
+        #home p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            color: #ccc;
+        }
+
+        /* Novedades */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, border 0.3s;
+            border: 1px solid #333;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-color);
+        }
+
+        .card-img {
+            height: 200px;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            color: #555;
+            border-bottom: 1px solid #333;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-content h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* Top Registros */
+        .top-list {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid var(--secondary-color);
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-right: 1rem;
+        }
+
+        /* Preguntas Frecuentes */
+        .faq-item {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-left: 5px solid var(--primary-color);
+            box-shadow: var(--shadow);
+        }
+
+        .faq-item h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* Reseñas */
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .review {
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 10px;
+            position: relative;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .review p {
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .review .author {
+            font-weight: bold;
+            text-align: right;
+            color: var(--primary-color);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-color);
+            color: var(--white);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 2px solid var(--primary-color);
+        }
+
+        footer .social {
+            margin-bottom: 1rem;
+        }
+
+        footer .social a {
+            margin: 0 10px;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            transition: color 0.3s;
+        }
+
+        footer .social a:hover {
+            color: var(--white);
+        }
+
+        footer p {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #home h1 {
+                font-size: 2.5rem;
+            }
+            header .container {
+                flex-direction: column;
+            }
+            header nav ul {
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navegación -->
+    <header>
+        <div class="container">
+            <div class="logo">PokeMarket Chile</div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#novedades">Novedades</a></li>
+                    <li><a href="#top">Top Registros</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#reseñas">Reseñas</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Home -->
+    <section id="home">
+        <div class="container">
+            <h1>Colecciona con Confianza</h1>
+            <p>La primera plataforma en Chile de compra, venta e intercambio de cartas Pokémon con catálogo centralizado y transacciones 100% verificadas. ¡Transformamos tu pasión en un proceso simple y seguro!</p>
+            <a href="#" class="btn">Empezar a Coleccionar</a>
+        </div>
+    </section>
+
+    <!-- Novedades -->
+    <section id="novedades">
+        <div class="container">
+            <h2 class="section-title">Novedades</h2>
+            <div class="news-grid">
+                <div class="card">
+                    <div class="card-img" style="background: #fdf2f2;">Charizard ex - Paldean Fates</div>
+                    <div class="card-content">
+                        <h3>Nuevos Arribos</h3>
+                        <p>Se han añadido más de 500 cartas de la última expansión. ¡Revisa el catálogo!</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-img" style="background: #f2f6fd;">Verificación Biométrica</div>
+                    <div class="card-content">
+                        <h3>Seguridad Mejorada</h3>
+                        <p>Implementamos nuevos filtros de seguridad para todos nuestros usuarios VIP.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-img" style="background: #fdfdf2;">Evento Santiago</div>
+                    <div class="card-content">
+                        <h3>Torneo Regional</h3>
+                        <p>PokeMarket estará presente en el próximo regional. ¡Ven a intercambiar en vivo!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Registros -->
+    <section id="top">
+        <div class="container">
+            <h2 class="section-title">Top Registros</h2>
+            <div class="top-list">
+                <div class="top-item">
+                    <span><span class="rank">#1</span> Pikachu Illustrator (Holographic)</span>
+                    <span>$25.000.000 CLP</span>
+                </div>
+                <div class="top-item">
+                    <span><span class="rank">#2</span> Charizard 1st Edition Shadowless</span>
+                    <span>$12.500.000 CLP</span>
+                </div>
+                <div class="top-item">
+                    <span><span class="rank">#3</span> Lugia Neo Genesis 1st Edition</span>
+                    <span>$4.200.000 CLP</span>
+                </div>
+                <div class="top-item">
+                    <span><span class="rank">#4</span> Umbreon VMAX (Alt Art)</span>
+                    <span>$650.000 CLP</span>
+                </div>
+                <div class="top-item">
+                    <span><span class="rank">#5</span> Rayquaza VMAX (Alt Art)</span>
+                    <span>$420.000 CLP</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Preguntas Frecuentes -->
+    <section id="faq">
+        <div class="container">
+            <h2 class="section-title">Preguntas Frecuentes</h2>
+            <div class="faq-item">
+                <h3>¿Cómo aseguran que las cartas sean originales?</h3>
+                <p>Contamos con un equipo de expertos y herramientas de análisis visual que verifican la autenticidad de cada carta de alto valor antes de completar la transacción.</p>
+            </div>
+            <div class="faq-item">
+                <h3>¿Es seguro el envío dentro de Chile?</h3>
+                <p>Utilizamos empaques reforzados y seguros de transporte integrados en la plataforma para que tu colección llegue impecable a cualquier región.</p>
+            </div>
+            <div class="faq-item">
+                <h3>¿Qué pasa si el vendedor no envía el producto?</h3>
+                <p>Tu dinero se mantiene en custodia por PokeMarket hasta que confirmas la recepción del producto. Si no hay envío, se te devuelve el 100%.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reseñas -->
+    <section id="reseñas">
+        <div class="container">
+            <h2 class="section-title">Lo que dicen nuestros Coleccionistas</h2>
+            <div class="reviews-grid">
+                <div class="review">
+                    <p>"Por fin una plataforma donde no tengo miedo de que me estafen. Compré un Charizard y el proceso de verificación fue impecable."</p>
+                    <div class="author">- Carlos M., Santiago</div>
+                </div>
+                <div class="review">
+                    <p>"Excelente para intercambiar. El catálogo centralizado hace que encontrar lo que me falta sea un juego de niños."</p>
+                    <div class="author">- Javiera R., Concepción</div>
+                </div>
+                <div class="review">
+                    <p>"La mejor comunidad de Chile. Transacciones rápidas y seguras. ¡Altamente recomendado!"</p>
+                    <div class="author">- Diego L., Valparaíso</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="logo" style="color: var(--accent-color); margin-bottom: 1rem;">PokeMarket Chile</div>
+            <div class="social">
+                <a href="#">FB</a>
+                <a href="#">IG</a>
+                <a href="#">TW</a>
+            </div>
+            <p>&copy; 2026 PokeMarket Chile. El mercado de referencia para coleccionistas. <br> Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
