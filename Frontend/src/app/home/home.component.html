@@ -1,6 +1,6 @@
 <div class="main-canvas" id="app-top">
   
-  <nav class="navbar" [class.menu-active]="menuOpen()">
+  <nav class="navbar" [class.menu-active]="menuOpen()" [style.--btn-bg]="cards()[0].color">
     <button class="menu-toggle" (click)="toggleMenu()">
       <span class="bar"></span>
       <span class="bar"></span>
@@ -16,8 +16,8 @@
     </div>
     <div class="nav-cta">
       <div class="cta-inner-wrap">
-        <button class="btn-login" [style.--btn-bg]="cards()[0].color" routerLink="/login">Inicio de Sesión</button>
-        <button class="btn-register" [style.--btn-bg]="cards()[0].color">Registrarse</button>
+        <button class="btn-login" routerLink="/login">Inicio de Sesión</button>
+        <button class="btn-register">Registrarse</button>
       </div>
     </div>
   </nav>
@@ -141,7 +141,7 @@
               </svg>
             </div>
             <h3 class="market-title">¿Buscas algo más?</h3>
-            <p class="market-desc">Explora el inventario completo con miles de cartas verificadas.</p>
+            <p class="market-desc">Explora el inventario completo con miles de cartas para ti.</p>
             <button class="btn-marketplace-inner">
               IR AL MERCADO <span class="arrow">→</span>
             </button>
@@ -374,7 +374,7 @@
       <div class="footer-logo">
         <span class="bracket">[</span>POKET<span class="bracket">]</span>.
       </div>
-      <p class="footer-tagline">EL ECOSISTEMA DEFINITIVO PARA ENTRENADORES TCG.</p>
+      <p class="footer-tagline">EL PUNTO DE ENCUENTRO PARA COLECCIONISTAS.</p>
       <div class="footer-divider"></div>
       <div class="footer-bottom">
         <span class="copyright">© 2026 POKET. TODOS LOS DERECHOS RESERVADOS.</span>

@@ -55,8 +55,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       id: 1,
       author: 'Tony S.',
       title: 'Excelente comunidad',
-      content: 'He logrado completar mi set de primera edición gracias a los intercambios que realicé aquí. La plataforma es intuitiva y la comunidad es muy seria. ¡Totalmente recomendada!',
-      rating: 4.5,
+      content: 'He logrado completar mi mazo de juego gracias a los intercambios que realicé aquí. La plataforma es intuitiva y la comunidad es muy seria. Muy recomendada.',
+      rating: 5,
       date: '15 Mar, 2024'
     },
     {
@@ -72,7 +72,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       author: 'Dylan P.',
       title: 'La mejor web de trading',
       content: 'He probado varios sitios pero este es por lejos el más fácil de usar. El sistema de reputación te da mucha tranquilidad al momento de enviar tus cartas más valiosas.',
-      rating: 4.5,
+      rating: 4,
       date: '10 May, 2024'
     }
   ]);

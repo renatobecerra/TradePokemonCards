@@ -1,6 +1,5 @@
 :host {
   display: block;
-  --btn-bg: #f8a5c2;
 }
 
 .main-canvas {
@@ -79,12 +78,12 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--btn-bg, #f8a5c2);
+  background: var(--btn-bg);
   transition: width 0.3s ease;
 }
 
 .navbar .nav-links a:hover {
-  color: var(--btn-bg, #f8a5c2);
+  color: var(--btn-bg);
 }
 
 .navbar .nav-links a:hover::after {
@@ -128,7 +127,7 @@ section {
   position: absolute;
   width: 0;
   height: 1px;
-  background: var(--btn-bg, #f8a5c2);
+  background: var(--btn-bg);
   bottom: 0;
   transition: width 0.3s ease, background 1.5s ease;
 }
@@ -137,7 +136,7 @@ section {
 .navbar .btn-login::after { right: 50%; }
 
 .navbar .btn-login:hover {
-  color: var(--btn-bg, #f8a5c2);
+  color: var(--btn-bg);
   text-shadow: 0 0 10px var(--btn-bg);
 }
 
@@ -147,7 +146,7 @@ section {
 }
 
 .navbar .btn-register {
-  background: var(--btn-bg, #f8a5c2);
+  background: var(--btn-bg);
   color: #000;
   border: none;
   padding: 0.9rem 2.2rem;
@@ -435,7 +434,7 @@ section {
 
 .section-header {
   max-width: 1400px;
-  margin: 0 auto 4rem auto;
+  margin: 0 auto 3rem auto;
   text-align: center;
   position: relative;
   z-index: 10;
@@ -1014,6 +1013,7 @@ section {
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.5);
   line-height: 1.8;
+  text-align: justify;
 }
 
 .resenias-section {
@@ -1228,7 +1228,7 @@ section {
   align-items: center;
   justify-content: center;
   gap: 2rem;
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 .mini-nav-btn {
