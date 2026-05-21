@@ -1,19 +1,24 @@
-<!-- home.component.html -->
-<div class="main-canvas">
+<div class="main-canvas" id="app-top">
   
-  <nav class="navbar">
+  <nav class="navbar" [class.menu-active]="menuOpen()" [style.--btn-bg]="cards()[0].color">
+    <button class="menu-toggle" (click)="toggleMenu()">
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
     <div class="nav-links">
-      <a href="#">Novedades</a>
-      <a href="#">Top Registros</a>
-      <a href="#">FAQ</a>
-      <a href="#">Reseñas</a>
+      <a href="#top-registros" (click)="toggleMenu()">Top Registros</a>
+      <a href="#como-funciona" (click)="toggleMenu()">Cómo funciona</a>
+      <a href="#faq" (click)="toggleMenu()">FAQ</a>
+      <a href="#resenias" (click)="toggleMenu()">Reseñas</a>
     </div>
     <div class="nav-logo">
       <span class="logo-bracket" [style.color]="cards()[0].color">[</span>POKET<span class="logo-bracket" [style.color]="cards()[0].color">]</span>.
     </div>
     <div class="nav-cta">
-      <button class="btn-login">Login</button>
-      <button class="btn-register">Registrarse</button>
+      <div class="cta-inner-wrap">
+        <button class="btn-login" routerLink="/login">Inicio de Sesión</button>
+        <button class="btn-register">Registrarse</button>
+      </div>
     </div>
   </nav>
 
@@ -22,22 +27,17 @@
 
     <div class="hero-content">
       <header class="hero-text-zone">
-        <div class="eyebrow" [style.color]="cards()[0].color">EL DESTINO PARA COLECCIONISTAS ÉLITE</div>
+        <div class="eyebrow" [style.color]="cards()[0].color">EL PUNTO DE ENCUENTRO PARA COLECCIONISTAS</div>
         <h1 class="main-title">
           COLECCIONA. <br>
           <span class="highlight" [style.color]="cards()[0].color">INTERCAMBIA.</span> <br>
           EVOLUCIONA.
         </h1>
         <p class="hero-subline">
-          La plataforma definitiva diseñada por y para coleccionistas. <br> 
-          Intercambia piezas únicas con seguridad absoluta y un estilo inigualable.
+          POKET es el motor detrás de miles de transacciones seguras. Compra y vende piezas exclusivas con la plataforma más avanzada del sector.
         </p>
         <div class="cta-wrap">
           <button class="btn-primary" [style.background]="cards()[0].color">INICIAR BÚSQUEDA</button>
-          <div class="market-status">
-            <span class="pulse" [style.background]="cards()[0].color"></span>
-            Mercado activo
-          </div>
         </div>
       </header>
 
@@ -45,7 +45,7 @@
         <div class="gallery-inner">
           @for (card of cards(); track card.name; let i = $index) {
             <div class="glass-card" [ngClass]="'c' + (i + 1)" 
-                 [style.opacity]="i === 0 ? '1' : (i === 1 ? '0.1' : (i === 2 ? '0.05' : '0.02'))">
+                 [style.opacity]="i === 0 ? '1' : (i === 1 ? '0.1' : (i === 2 ? '0.05' : (i === 3 ? '0.02' : '0.01')))">
               
               <div class="card-inner-glow"></div>
               
@@ -81,48 +81,309 @@
     </div>
   </main>
 
-  <!-- Sección Novedades -->
-  <section class="news-section">
+  <section class="top-registros" id="top-registros">
+    <div class="section-bg-effect"></div>
+    
     <header class="section-header">
-      <span class="eyebrow">ÚLTIMAS ACTUALIZACIONES</span>
-      <h2 class="section-title">NOVEDADES.</h2>
+      <div class="header-left">
+        <span class="eyebrow">EL MERCADO</span>
+        <h2 class="title">
+          TOP REGISTROS<span class="title-dot">.</span>
+        </h2>
+      </div>
+      <div class="currency-toggle-wrapper">
+        <button class="currency-btn" (click)="toggleCurrency()" [class.active]="!isUSD()">CLP</button>
+        <button class="currency-btn" (click)="toggleCurrency()" [class.active]="isUSD()">USD</button>
+      </div>
     </header>
 
-    <div class="bento-grid">
+    <div class="carousel-wrapper">
+      <div class="top-cards-grid" (scroll)="updateScrollProgress($event)">
+        @for (item of topRegistros(); track item.name) {
+          <div class="top-card-item">
+            <div class="card-visual-wrapper">
+              <div class="card-glow-dynamic" [style.background]="item.color"></div>
+              <img [src]="item.image" [alt]="item.name" class="top-card-img">
+              
+              <div class="card-overlay">
+                <div class="overlay-content">
+                  <span class="rarity-tag" [style.background]="item.color">{{ item.rarity }}</span>
+                  <div class="owner-info">
+                    <span class="label">Coleccionista</span>
+                    <span class="value">{{ item.owner }}</span>
+                  </div>
+                  <button class="btn-detail">Ver Detalles</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-info">
+              <h3 class="card-name">{{ item.name }}</h3>
+              <div class="price-tag">
+                <div class="price-box">
+                  <span class="price-label">Valor de mercado</span>
+                  <span class="price-value" [style.color]="item.color">{{ getConvertedValue(item.value) }}</span>
+                </div>
+                <div class="status-indicator">
+                  <div class="status-dot" [style.background]="item.color"></div>
+                  <span class="status-text">DISPONIBLE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="top-card-item marketplace-card">
+          <div class="card-inner-marketplace">
+            <div class="icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="1.5">
+                <path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h7m9-7l-3 3m0 0l-3-3m3 3V10"/>
+              </svg>
+            </div>
+            <h3 class="market-title">¿Buscas algo más?</h3>
+            <p class="market-desc">Explora el inventario completo con miles de cartas para ti.</p>
+            <button class="btn-marketplace-inner">
+              IR AL MERCADO <span class="arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
       
-      <div class="bento-item bento-main">
-        <div class="bento-content">
-          <span class="tag">Lorem</span>
-          <h2>Lorem Ipsum.</h2>
-          <p>Lorem Ipsum lorem ipsum.</p>
-        </div>
-        <div class="bento-shape shape-1"></div>
-      </div>
+      <div class="scroll-navigation-footer">
+        <button class="mini-nav-btn" (click)="scrollCards('left')" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
 
-      <div class="bento-item bento-stats">
-        <div class="bento-content">
-          <h3>Lorem</h3>
-          <p>Lorem ipsum.</p>
+        <div class="scroll-indicator-container">
+          <div class="scroll-track">
+            <div class="scroll-bar" [style.width.%]="scrollProgress()"></div>
+          </div>
+          <span class="scroll-hint">DESLIZA PARA EXPLORAR</span>
         </div>
-        <div class="bento-shape shape-2"></div>
-      </div>
 
-      <div class="bento-item bento-market">
-        <div class="bento-content">
-          <h3>Lorem ipsum.</h3>
-          <p>Lorem ipsum.</p>
-        </div>
-        <div class="bento-shape shape-3"></div>
+        <button class="mini-nav-btn" (click)="scrollCards('right')" aria-label="Siguiente">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </div>
-
-      <div class="bento-item bento-verify">
-        <div class="bento-content">
-          <h3>Lorem ipsum.</h3>
-          <p>Lorem ipsum.</p>
-        </div>
-        <div class="bento-shape shape-4"></div>
-      </div>
-
     </div>
   </section>
+
+  <section class="como-funciona-elite" id="como-funciona">
+    <div class="background-glow"></div>
+    
+    <header class="section-header">
+      <span class="eyebrow">EL PROCESO</span>
+      <h2 class="title">
+        CÓMO FUNCIONA<span class="title-dot">.</span>
+      </h2>
+    </header>
+
+    <div class="process-steps-container">
+      <div class="connection-line">
+        <div class="line-progress"></div>
+      </div>
+
+    <div class="steps-grid">
+      <div class="step-item">
+        <div class="step-visual">
+          <div class="step-number">01</div>
+          <div class="step-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-content">
+          <h3>Tu colección, tus reglas.</h3>
+          <p>Registra cada una de tus cartas, ponles el precio que quieras y deja que el resto de la comunidad vea lo que tienes para ofrecer.</p>
+        </div>
+        <div class="step-glow pink"></div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-visual">
+          <div class="step-number">02</div>
+          <div class="step-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-content">
+          <h3>Charla directa.</h3>
+          <p>Regístrate en segundos para empezar a hablar con otros coleccionistas. Sin vueltas: pregunta, chatea y empieza a mover tus cartas hoy mismo.</p>
+        </div>
+        <div class="step-glow blue"></div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-visual">
+          <div class="step-number">03</div>
+          <div class="step-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l5 5M3 4l5 5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-content">
+          <h3>Negocia a tu manera.</h3>
+          <p>Tú pones las condiciones. Lanza una oferta, ajusta el precio o propone un intercambio directo. Tú eliges la mejor forma de cerrar el trato.</p>
+        </div>
+        <div class="step-glow yellow"></div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-visual">
+          <div class="step-number">04</div>
+          <div class="step-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-content">
+          <h3>Termina tu set.</h3>
+          <p>Encuentra esa carta que te falta para completar tu colección o descubre piezas raras para mejorar tu mazo. Tu búsqueda termina aquí.</p>
+        </div>
+        <div class="step-glow green"></div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <section class="faq-section" id="faq">
+    <div class="background-mesh-faq"></div>
+
+    <header class="section-header">
+      <span class="eyebrow">¿NECESITAS AYUDA?</span>
+      <h2 class="title">
+        PREGUNTAS FRECUENTES<span class="title-dot">.</span>
+      </h2>
+    </header>
+
+    <div class="faq-container">
+      <div class="faq-list">
+        @for (item of faqItems(); track item.id) {
+          <div class="faq-item" [class.active]="item.isOpen">
+            <button class="faq-trigger" (click)="toggleFAQ(item.id)">
+              <span class="faq-num">0{{ item.id }}</span>
+              <span class="faq-question">{{ item.question }}</span>
+              <div class="faq-icon-wrap">
+                <div class="icon-line horizontal"></div>
+                <div class="icon-line vertical"></div>
+              </div>
+            </button>
+            <div class="faq-content" [style.max-height]="item.isOpen ? '300px' : '0'">
+              <div class="content-inner">
+                <p>{{ item.answer }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="resenias-section" id="resenias">
+    <div class="background-mesh-resenias"></div>
+    
+    <div class="resenias-layout">
+      <div class="resenias-info-column">
+        <header class="section-header align-left">
+          <span class="eyebrow">LA COMUNIDAD</span>
+          <h2 class="title">
+            RESEÑAS<span class="title-dot">.</span>
+          </h2>
+        </header>
+
+        <div class="poket-trust-score">
+          <svg width="0" height="0" style="position: absolute;">
+            <defs>
+              <linearGradient id="half-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="50%" stop-color="#2ecc71" />
+                <stop offset="50%" stop-color="rgba(255,255,255,0.1)" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="stars-row">
+            @for (s of [1,2,3,4,5]; track s) {
+              <svg viewBox="0 0 24 24" class="star-glow" 
+                   [class.filled]="s <= 4" 
+                   [style.fill]="s === 5 ? 'url(#half-gradient)' : ''">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            }
+          </div>
+          <p class="trust-text">PUNTUACIÓN DE <b>4.5/5</b> BASADA EN MÁS DE <b>20,000</b> ENTRENADORES</p>
+        </div>
+
+        <p class="resenias-description">
+          Descubre historias reales de coleccionistas que han evolucionado su mazo con nuestra tecnología de intercambio seguro.
+        </p>
+
+        <div class="resenias-nav-arrows">
+          <button class="nav-arrow-btn prev" (click)="scrollresenias('left')" aria-label="Anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button class="nav-arrow-btn next" (click)="scrollresenias('right')" aria-label="Siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="resenias-cards-scroll">
+        <div class="resenias-grid-horizontal">
+          @for (review of resenias(); track review.id) {
+            <div class="poket-review-card">
+              <div class="card-glass-effect"></div>
+              
+              <div class="card-header">
+                <div class="rating-badge">
+                  @for (star of [1,2,3,4,5]; track star) {
+                    <div class="mini-star-box" 
+                         [class.half]="review.rating >= star - 0.5 && review.rating < star"
+                         [class.empty]="review.rating < star - 0.5">★</div>
+                  }
+                </div>
+                <div class="verified-tag">VERIFICADO</div>
+              </div>
+
+              <h3 class="review-title-text">{{ review.title }}</h3>
+              <p class="review-body-text">"{{ review.content }}"</p>
+              
+              <div class="review-footer-poket">
+                <div class="author-avatar-wrap">
+                  <div class="avatar-box">{{ review.author.charAt(0) }}</div>
+                  <div class="avatar-glow"></div>
+                </div>
+                <div class="author-meta">
+                  <span class="author-name-poket">{{ review.author }}</span>
+                  <span class="author-date-poket">{{ review.date }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <span class="bracket">[</span>POKET<span class="bracket">]</span>.
+      </div>
+      <p class="footer-tagline">EL PUNTO DE ENCUENTRO PARA COLECCIONISTAS.</p>
+      <div class="footer-divider"></div>
+      <div class="footer-bottom">
+        <span class="copyright">© 2026 POKET. TODOS LOS DERECHOS RESERVADOS.</span>
+        <div class="footer-legal-links">
+          <a href="#">Términos y Condiciones</a>
+          <a href="#">Privacidad</a>
+        </div>
+        <a href="#app-top" class="back-to-top">VOLVER ARRIBA ↑</a>
+      </div>
+    </div>
+  </footer>
 </div>
