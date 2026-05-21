@@ -12,3 +12,42 @@ dist/
 # Varios
 .DS_Store
 *.log
+
+
+# =========================================================================
+# .NET (C#) - Carpetas de compilación y temporales
+# =========================================================================
+Bin/
+obj/
+bin/
+[Bb]in/
+[Oo]bj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Archivos de configuración local que NO deben compartirse (para que no pisen sus claves de DB)
+# Nota: Si quieren compartir la estructura del appsettings, compartan "appsettings.json" 
+# pero pueden ignorar el "appsettings.Development.json" si manejan claves distintas.
+# appsettings.Development.json
+
+# =========================================================================
+# Angular / Node.js (Para cuando levanten el Frontend)
+# =========================================================================
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# =========================================================================
+# Editores de Código y Sistema Operativo
+# =========================================================================
+.vs/
+.vscode/
+*.swp
+*.DS_Store
+Thumbs.db
