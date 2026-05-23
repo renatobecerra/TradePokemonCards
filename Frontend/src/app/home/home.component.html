@@ -6,18 +6,18 @@
       <span class="bar"></span>
     </button>
     <div class="nav-links">
-      <a href="#top-registros" (click)="toggleMenu()">Top Registros</a>
-      <a href="#como-funciona" (click)="toggleMenu()">Cómo funciona</a>
+      <a href="#top-registros" (click)="toggleMenu()">TOP REGISTROS</a>
+      <a href="#como-funciona" (click)="toggleMenu()">CÓMO FUNCIONA</a>
       <a href="#faq" (click)="toggleMenu()">FAQ</a>
-      <a href="#resenias" (click)="toggleMenu()">Reseñas</a>
+      <a href="#resenias" (click)="toggleMenu()">RESEÑAS</a>
     </div>
     <div class="nav-logo">
       <span class="logo-bracket" [style.color]="cards()[0].color">[</span>POKET<span class="logo-bracket" [style.color]="cards()[0].color">]</span>.
     </div>
     <div class="nav-cta">
       <div class="cta-inner-wrap">
-        <button class="btn-login" routerLink="/login">Inicio de Sesión</button>
-        <button class="btn-register">Registrarse</button>
+        <button class="btn-login" routerLink="/login">INICIO DE SESIÓN</button>
+        <button class="btn-register" routerLink="/register">REGISTRARSE</button>
       </div>
     </div>
   </nav>
@@ -379,10 +379,8 @@
       <div class="footer-bottom">
         <span class="copyright">© 2026 POKET. TODOS LOS DERECHOS RESERVADOS.</span>
         <div class="footer-legal-links">
-          <a href="#">Términos y Condiciones</a>
-          <a href="#">Privacidad</a>
-        </div>
-        <a href="#app-top" class="back-to-top">VOLVER ARRIBA ↑</a>
+          <a routerLink="/terminos">Términos y Condiciones</a>
+        </div>        <a href="#app-top" class="back-to-top">VOLVER ARRIBA ↑</a>
       </div>
     </div>
   </footer>

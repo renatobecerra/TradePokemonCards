@@ -1,0 +1,70 @@
+<div class="login-page">
+  <div class="login-left">
+    <div class="login-header">
+      <div class="header-left">
+        <a routerLink="/" class="back-link">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Volver</span>
+        </a>
+        <div class="logo" routerLink="/" style="cursor: pointer;">
+          <span class="bracket">[</span>POKET<span class="bracket">]</span>.
+        </div>
+      </div>
+      <a routerLink="/register" class="create-account">Crear una cuenta</a>
+    </div>
+
+    <div class="login-form-container">
+      <h1>Iniciar Sesión</h1>
+      <p class="subtitle">Ingresa para gestionar tu colección y realizar intercambios épicos.</p>
+
+      <form class="login-form" (ngSubmit)="onSubmit()">
+        <div *ngIf="errorMessage" class="error-message">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" [(ngModel)]="correo" placeholder="Ingresa tu email" required>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Contraseña</label>
+          <div class="password-input-wrapper">
+            <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" [(ngModel)]="contrasena" placeholder="Ingresa tu contraseña" required>
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility()">
+              <svg *ngIf="!showPassword" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg *ngIf="showPassword" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="forgot-password">
+          <a routerLink="/recovery">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button type="submit" class="btn-login-submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="minimalist-bg">
+      <div class="circle c1"></div>
+      <div class="circle c2"></div>
+      <div class="circle c3"></div>
+      <div class="grid-overlay"></div>
+    </div>
+
+    <div class="overlay-content">
+      <div class="minimalist-logo">
+        <svg viewBox="0 0 100 100" width="80" height="80">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#2ecc71" stroke-width="2" />
+          <path d="M30 50 L50 70 L70 30" fill="none" stroke="#2ecc71" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <h2>Bienvenido de <br><span>nuevo</span>.</h2>
+      <p>Accede a tu cuenta para continuar gestionando tus intercambios y colección de cartas.</p>
+    </div>
+  </div>
+</div>

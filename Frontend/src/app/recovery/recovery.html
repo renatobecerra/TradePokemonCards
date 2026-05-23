@@ -1,0 +1,112 @@
+<div class="recovery-page">
+  <div class="recovery-left">
+    <div class="recovery-header">
+      <div class="header-left">
+        <a routerLink="/login" class="back-link">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Volver</span>
+        </a>
+        <div class="logo" routerLink="/" style="cursor: pointer;">
+          <span class="bracket">[</span>POKET<span class="bracket">]</span>.
+        </div>
+      </div>
+    </div>
+
+    <div class="recovery-form-container">
+      <h1>Recuperar <br>Acceso.</h1>
+      
+      <p class="subtitle" *ngIf="step === 1">Ingresa tu correo para enviarte un código de recuperación.</p>
+      <p class="subtitle" *ngIf="step === 2">Hemos enviado un código de seguridad a: <br><b style="color: #2ecc71; font-family: 'Share Tech Mono', monospace;">{{ correo }}</b></p>
+      <p class="subtitle" *ngIf="step === 3">Crea una nueva contraseña segura para tu cuenta de POKET.</p>
+
+      <!-- Mensajes -->
+      <div *ngIf="errorMessage" class="message error">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+      <div *ngIf="successMessage" class="message success">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <!-- PASO 1: Ingresar Correo -->
+      <form *ngIf="step === 1" (ngSubmit)="solicitarCodigo()">
+        <div class="input-group">
+          <label for="email">Correo Electrónico</label>
+          <input type="email" id="email" name="correo" [(ngModel)]="correo" placeholder="ejemplo@correo.com" required autocomplete="email">
+        </div>
+        <button type="submit" class="btn-recovery" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Enviar Código de Seguridad</span>
+          <span *ngIf="isLoading" class="loader"></span>
+        </button>
+      </form>
+
+      <!-- PASO 2: Ingresar Código -->
+      <form *ngIf="step === 2" (ngSubmit)="validarCodigo()">
+        <div class="input-group">
+          <label for="code">Código de Verificación</label>
+          <input type="text" id="code" name="codigo" [(ngModel)]="codigo" placeholder="000000" maxlength="6" class="code-input" required autocomplete="off">
+        </div>
+        <button type="submit" class="btn-recovery" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Verificar Código</span>
+          <span *ngIf="isLoading" class="loader"></span>
+        </button>
+        <div class="resend-box">
+          ¿No recibiste el código? <a (click)="solicitarCodigo()" class="link">Reenviar ahora</a>
+        </div>
+      </form>
+
+      <!-- PASO 3: Nueva Password -->
+      <form *ngIf="step === 3" (ngSubmit)="resetearPassword()">
+        <div class="input-group">
+          <label for="new-pass">Nueva Contraseña</label>
+          <div class="password-input-wrapper">
+            <input [type]="showPassword ? 'text' : 'password'" id="new-pass" name="nuevaPassword" [(ngModel)]="nuevaPassword" placeholder="Mínimo 8 caracteres" required>
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility()">
+              <svg *ngIf="!showPassword" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg *ngIf="showPassword" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="confirm-pass">Confirmar Contraseña</label>
+          <div class="password-input-wrapper">
+            <input [type]="showConfirmPassword ? 'text' : 'password'" id="confirm-pass" name="confirmarPassword" [(ngModel)]="confirmarPassword" placeholder="Repite la contraseña" required>
+            <button type="button" class="password-toggle" (click)="toggleConfirmPasswordVisibility()">
+              <svg *ngIf="!showConfirmPassword" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg *ngIf="showConfirmPassword" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-recovery" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Actualizar Contraseña</span>
+          <span *ngIf="isLoading" class="loader"></span>
+        </button>
+      </form>
+
+      <div class="recovery-footer">
+        <a routerLink="/login" class="back-link">¿Recordaste tu contraseña? Inicia Sesión</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="recovery-right">
+    <div class="minimalist-bg">
+      <div class="circle c1"></div>
+      <div class="circle c2"></div>
+      <div class="circle c3"></div>
+      <div class="grid-overlay"></div>
+    </div>
+
+    <div class="overlay-content">
+      <div class="minimalist-logo" style="margin-bottom: 3rem;">
+        <svg viewBox="0 0 100 100" width="80" height="80">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#2ecc71" stroke-width="2" />
+          <path d="M30 50 L50 70 L70 30" fill="none" stroke="#2ecc71" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <h2>Vuelve a la <br><span>batalla</span>.</h2>
+      <p>No dejes que una contraseña te detenga. Recupera tu cuenta y sigue evolucionando tu colección en el mercado más grande.</p>
+    </div>
+  </div>
+</div>

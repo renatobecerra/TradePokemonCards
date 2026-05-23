@@ -218,13 +218,18 @@ public partial class PokemonMarketContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("Fecha_Registro");
             entity.Property(e => e.ImgPerfil)
-                .HasMaxLength(500)
+                .HasColumnType("longtext")
                 .HasColumnName("IMG_Perfil");
             entity.Property(e => e.Nombre).HasMaxLength(100);
+            entity.Property(e => e.Apellido).HasMaxLength(100);
             entity.Property(e => e.Rol)
                 .HasMaxLength(20)
                 .HasDefaultValueSql("'Usuario'");
             entity.Property(e => e.Telefono).HasMaxLength(20);
+            entity.Property(e => e.CodigoVerificacion).HasMaxLength(6);
+            entity.Property(e => e.EsVerificado).HasDefaultValueSql("'0'");
+            entity.Property(e => e.CodigoRecuperacion).HasMaxLength(6);
+            entity.Property(e => e.Descripcion).HasColumnType("text");
         });
 
         OnModelCreatingPartial(modelBuilder);

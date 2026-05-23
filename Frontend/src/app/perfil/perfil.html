@@ -1,0 +1,223 @@
+<div class="perfil-page">
+  <nav class="perfil-nav">
+    <div class="nav-container">
+      <div class="logo" routerLink="/explorar">
+        <span class="bracket">[</span>POKET<span class="bracket">]</span>.
+      </div>
+
+      <div class="nav-links">
+        <a routerLink="/explorar">EXPLORAR</a>
+        <a routerLink="/inventario">MI INVENTARIO</a>
+        <a routerLink="/mensajes">MENSAJES</a>
+      </div>
+
+      <div class="nav-right">
+        <div class="user-mini-profile" *ngIf="currentUser()">
+          <span class="user-name-nav">{{ currentUser().nombre }}</span>
+          <div class="avatar-nav">
+            @if (currentUser().foto) {
+              <img [src]="currentUser().foto" alt="Avatar">
+            } @else {
+              <div class="avatar-placeholder-nav">
+                {{ currentUser().nombre.charAt(0) }}{{ currentUser().apellido?.charAt(0) }}
+              </div>
+            }
+          </div>
+        </div>
+        <button class="btn-back" routerLink="/explorar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          VOLVER
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="perfil-content">
+    <div class="perfil-card">
+      <div class="card-header-visual"></div>
+      
+      <div class="perfil-body">
+        <div class="perfil-sidebar">
+          <div class="avatar-section">
+            <div class="avatar-wrapper">
+              @if (currentUser()?.foto) {
+                <img [src]="currentUser().foto" alt="Avatar" class="profile-img">
+              } @else {
+                <div class="profile-placeholder">
+                  {{ currentUser()?.nombre?.charAt(0) }}{{ currentUser()?.apellido?.charAt(0) }}
+                </div>
+              }
+              <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none">
+              <button class="btn-change-photo" title="Cambiar foto" (click)="fileInput.click()" *ngIf="isEditing()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+              </button>
+            </div>
+            <h2 class="user-full-name">{{ currentUser()?.nombre }} {{ currentUser()?.apellido }}</h2>
+            <p class="user-role">{{ currentUser()?.rol || 'Coleccionista' }}</p>
+          </div>
+
+          <div class="stats-mini">
+            <div class="stat-box">
+              <span class="stat-val">X</span>
+              <span class="stat-lbl">Intercambios</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val">X</span>
+              <span class="stat-lbl">Calificación</span>
+            </div>
+          </div>
+
+          <div class="sidebar-menu">
+            <button class="menu-btn active">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              MI INFORMACIÓN
+            </button>
+            <button class="menu-btn logout" (click)='onLogout()'>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              CERRAR SESIÓN
+            </button>
+          </div>
+        </div>
+
+        <div class="perfil-main">
+          <header class="main-header">
+            <div>
+              <h1 class="section-title">Información de la Cuenta</h1>
+              <p class="section-desc">Gestiona tus datos personales y biografía pública.</p>
+            </div>
+            <button class="btn-edit-toggle" (click)="toggleEdit()" [class.editing]="isEditing()">
+              {{ isEditing() ? 'CANCELAR' : 'EDITAR PERFIL' }}
+            </button>
+          </header>
+
+          <div class="info-grid" [class.edit-mode]="isEditing()">
+            <!-- Nombre -->
+            <div class="info-group">
+              <label>NOMBRE</label>
+              @if (isEditing()) {
+                <input type="text" [(ngModel)]="editData.nombre" placeholder="Tu nombre">
+              } @else {
+                <p class="val-text">{{ currentUser()?.nombre }}</p>
+              }
+            </div>
+
+            <!-- Apellido -->
+            <div class="info-group">
+              <label>APELLIDO</label>
+              @if (isEditing()) {
+                <input type="text" [(ngModel)]="editData.apellido" placeholder="Tu apellido">
+              } @else {
+                <p class="val-text">{{ currentUser()?.apellido || 'No especificado' }}</p>
+              }
+            </div>
+
+            <!-- Correo -->
+            <div class="info-group full">
+              <label>CORREO ELECTRÓNICO</label>
+              @if (isEditing()) {
+                <input type="email" [(ngModel)]="editData.correo" placeholder="tu@email.com">
+              } @else {
+                <p class="val-text">{{ currentUser()?.correo }}</p>
+              }
+            </div>
+
+            <!-- Teléfono -->
+            <div class="info-group">
+              <label>TELÉFONO</label>
+              @if (isEditing()) {
+                <input type="tel" [(ngModel)]="editData.telefono" placeholder="+56 9 ...">
+              } @else {
+                <p class="val-text">{{ currentUser()?.telefono || 'No registrado' }}</p>
+              }
+            </div>
+
+            <!-- Biografía -->
+            <div class="info-group full">
+              <label>DESCRIPCIÓN</label>
+              @if (isEditing()) {
+                <textarea [(ngModel)]="editData.bio" rows="4" placeholder="Cuéntale a la comunidad qué cartas buscas o qué tipo de coleccionista eres..."></textarea>
+              } @else {
+                <p class="val-text bio-text">{{ currentUser()?.bio || 'Sin descripción aún. ¡Cuéntanos sobre ti!' }}</p>
+              }
+            </div>
+          </div>
+
+          @if (isEditing()) {
+            <div class="save-actions">
+              <button class="btn-save" (click)="onSave()">GUARDAR CAMBIOS</button>
+            </div>
+          }
+
+          <div class="security-mini-section">
+            <h3 class="mini-title">Seguridad</h3>
+            <div class="security-card" [class.expanded]="isChangingPassword()">
+              <div class="sec-info" *ngIf="!isChangingPassword()">
+                <p class="sec-lbl">Contraseña</p>
+                <p class="sec-val">••••••••••••</p>
+              </div>
+              
+              <div class="password-form" *ngIf="isChangingPassword()">
+                <div class="form-row">
+                  <div class="input-group">
+                    <label>CONTRASEÑA ACTUAL</label>
+                    <div class="password-wrapper">
+                      <input [type]="showActual() ? 'text' : 'password'" [(ngModel)]="passwordData.actual" placeholder="Ingresa tu contraseña actual">
+                      <button type="button" class="btn-toggle-pass" (click)="showActual.set(!showActual())">
+                        @if (showActual()) {
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        } @else {
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="input-group">
+                    <label>NUEVA CONTRASEÑA</label>
+                    <div class="password-wrapper">
+                      <input [type]="showNueva() ? 'text' : 'password'" [(ngModel)]="passwordData.nueva" placeholder="Mínimo 6 caracteres">
+                      <button type="button" class="btn-toggle-pass" (click)="showNueva.set(!showNueva())">
+                        @if (showNueva()) {
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        } @else {
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                  <div class="input-group">
+                    <label>CONFIRMAR NUEVA CONTRASEÑA</label>
+                    <div class="password-wrapper">
+                      <input [type]="showConfirmar() ? 'text' : 'password'" [(ngModel)]="passwordData.confirmar" placeholder="Repite la nueva contraseña">
+                      <button type="button" class="btn-toggle-pass" (click)="showConfirmar.set(!showConfirmar())">
+                        @if (showConfirmar()) {
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        } @else {
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                @if (passwordMessage()) {
+                  <div class="password-feedback" [class.error]="passwordMessage()?.type === 'error'" [class.success]="passwordMessage()?.type === 'success'">
+                    {{ passwordMessage()?.text }}
+                  </div>
+                }
+
+                <div class="form-actions">
+                  <button class="btn-cancel-pass" (click)="togglePasswordChange()">CANCELAR</button>
+                  <button class="btn-confirm-pass" (click)="onUpdatePassword()">ACTUALIZAR CONTRASEÑA</button>
+                </div>
+              </div>
+
+              <button class="btn-sec-action" (click)="togglePasswordChange()" *ngIf="!isChangingPassword()">CAMBIAR CONTRASEÑA</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -9,7 +9,15 @@ public partial class Usuario
 
     public string Nombre { get; set; } = null!;
 
+    public string? Apellido { get; set; }
+
     public string Contraseña { get; set; } = null!;
+
+    public string? CodigoVerificacion { get; set; }
+
+    public bool EsVerificado { get; set; } = false;
+
+    public string? CodigoRecuperacion { get; set; }
 
     public string Correo { get; set; } = null!;
 
@@ -24,6 +32,10 @@ public partial class Usuario
     public decimal? Calificacion { get; set; }
 
     public string? ImgPerfil { get; set; }
+
+    public sbyte? EstadoPresencia { get; set; } = 1;
+
+    public string? Descripcion { get; set; }
 
     public virtual ICollection<Guardado> Guardados { get; set; } = new List<Guardado>();
 
