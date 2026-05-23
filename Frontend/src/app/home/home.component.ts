@@ -1,7 +1,9 @@
 // home.component.ts
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { Subscription } from 'rxjs';
 
 interface PokemonCard {
   name: string;
@@ -49,6 +51,11 @@ interface ReviewItem {
 export class HomeComponent implements OnInit, OnDestroy {
   public menuOpen = signal<boolean>(false);
   public scrollProgress = signal<number>(0);
+  public currentUser = signal<any>(null);
+
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private authSub?: Subscription;
 
   public resenias = signal<ReviewItem[]>([
     {
@@ -213,6 +220,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   private timer: any;
 
   ngOnInit() {
+    // Cerrar sesión si el usuario vuelve a la landing page, 
+    // ya que esto se considera salir de la cuenta.
+    if (this.authService.currentUserValue) {
+      this.authService.logout();
+    }
+
+    // Suscribirse al estado del usuario
+    this.authSub = this.authService.currentUser$.subscribe(user => {
+      this.currentUser.set(user);
+    });
+
     // Rotación ultra lenta: cada 10 segundos
     this.timer = setInterval(() => {
       this.rotateCards();
@@ -295,7 +313,15 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  onLogout() {
+    this.authService.logout();
+    this.router.navigate(['/']);
+  }
+
   ngOnDestroy() {
+    if (this.authSub) {
+      this.authSub.unsubscribe();
+    }
     if (this.timer) {
       clearInterval(this.timer);
     }

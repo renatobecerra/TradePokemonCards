@@ -1,5 +1,6 @@
 //Cod extra
 using Backend.Models;
+using Backend.Services;
 using Microsoft.EntityFrameworkCore;
 //Fin cod extra
 
@@ -29,6 +30,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Registra el contexto usando esa cadena en MySQL
 builder.Services.AddDbContext<PokemonMarketContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// REGISTRO DE SERVICIO DE EMAIL
+builder.Services.AddScoped<IEmailService, EmailService>();
+// FIN REGISTRO DE SERVICIO DE EMAIL
+
 builder.Services.AddControllers();
 //FIN SECCION DE COD EXTRA
 
@@ -45,7 +51,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 //lInea extra
 app.MapControllers();
 //Fin linea extra
