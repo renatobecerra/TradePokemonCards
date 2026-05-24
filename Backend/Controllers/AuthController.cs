@@ -4,6 +4,7 @@ using Backend.Models;
 using BCrypt.Net;
 using Backend.Services;
 using Google.Apis.Auth;
+using System.Text.RegularExpressions;
 
 namespace Backend.Controllers
 {
@@ -11,6 +12,9 @@ namespace Backend.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
+        private const string PasswordPolicyMessage = "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo.";
+        private static readonly Regex PasswordPolicy = new(@"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':""\\|,.<>\/?]).{8,}$", RegexOptions.Compiled);
+
         private readonly PokemonMarketContext _context;
         private readonly IEmailService _emailService;
 
@@ -107,6 +111,11 @@ namespace Backend.Controllers
                 if (existeCorreo)
                 {
                     return BadRequest(new { mensaje = "El correo electrónico ya está registrado." });
+                }
+
+                if (!CumplePoliticaPassword(nuevoUsuario.Contraseña))
+                {
+                    return BadRequest(new { mensaje = PasswordPolicyMessage });
                 }
 
                 var random = new Random();
@@ -208,13 +217,27 @@ namespace Backend.Controllers
         [HttpPost("validar-codigo-recuperacion")]
         public async Task<IActionResult> ValidarCodigoRecuperacion([FromBody] VerificarDto datos)
         {
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == datos.Correo);
-            if (usuario == null || usuario.CodigoRecuperacion != datos.Codigo)
+            try
             {
-                return BadRequest(new { mensaje = "Código inválido o correo incorrecto." });
-            }
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == datos.Correo);
+                
+                if (usuario == null)
+                {
+                    return BadRequest(new { mensaje = "El correo no está registrado." });
+                }
 
-            return Ok(new { mensaje = "Código correcto. Puedes cambiar tu contraseña." });
+                if (usuario.CodigoRecuperacion != datos.Codigo)
+                {
+                    return BadRequest(new { mensaje = "Código de recuperación incorrecto." });
+                }
+
+                return Ok(new { mensaje = "Código correcto. Puedes cambiar tu contraseña." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en ValidarCodigoRecuperacion: {ex.Message}");
+                return StatusCode(500, new { mensaje = "Error interno al validar el código." });
+            }
         }
 
         [HttpPost("resetear-password")]
@@ -223,20 +246,33 @@ namespace Backend.Controllers
             try
             {
                 var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == datos.Correo);
-                if (usuario == null || usuario.CodigoRecuperacion != datos.Codigo)
+                
+                if (usuario == null)
                 {
-                    return BadRequest(new { mensaje = "Operación no permitida. El código ha expirado o es incorrecto." });
+                    return BadRequest(new { mensaje = "El usuario no existe." });
+                }
+
+                if (usuario.CodigoRecuperacion != datos.Codigo)
+                {
+                    return BadRequest(new { mensaje = "El código es incorrecto o ha expirado." });
+                }
+
+                if (!CumplePoliticaPassword(datos.NuevaPassword))
+                {
+                    return BadRequest(new { mensaje = PasswordPolicyMessage });
                 }
 
                 usuario.Contraseña = BCrypt.Net.BCrypt.HashPassword(datos.NuevaPassword);
                 usuario.CodigoRecuperacion = null;
+                
                 await _context.SaveChangesAsync();
 
                 return Ok(new { mensaje = "Contraseña actualizada exitosamente." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al actualizar: " + ex.Message });
+                Console.WriteLine($"Error en ResetearPassword: {ex.Message}");
+                return StatusCode(500, new { mensaje = "Error interno al actualizar la contraseña." });
             }
         }
 
@@ -338,7 +374,11 @@ namespace Backend.Controllers
                     return BadRequest(new { mensaje = "La contraseña actual es incorrecta." });
                 }
 
-                // Actualizar a la nueva contraseña hashed
+                if (!CumplePoliticaPassword(datos.NuevaPassword))
+                {
+                    return BadRequest(new { mensaje = PasswordPolicyMessage });
+                }
+
                 usuario.Contraseña = BCrypt.Net.BCrypt.HashPassword(datos.NuevaPassword);
                 await _context.SaveChangesAsync();
 
@@ -348,6 +388,11 @@ namespace Backend.Controllers
             {
                 return StatusCode(500, new { mensaje = "Error al cambiar contraseña: " + ex.Message });
             }
+        }
+
+        private static bool CumplePoliticaPassword(string? password)
+        {
+            return !string.IsNullOrWhiteSpace(password) && PasswordPolicy.IsMatch(password);
         }
     }
 

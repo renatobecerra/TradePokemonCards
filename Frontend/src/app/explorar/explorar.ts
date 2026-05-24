@@ -45,20 +45,15 @@ export class ExplorarComponent implements OnInit {
       return;
     }
 
-    // Guardamos el estado anterior por si falla la petición
     const estadoAnterior = user.estadoPresencia;
 
-    // Actualización Optimista: Cambiamos la UI antes de esperar al servidor
     this.currentUser.set({ ...user, estadoPresencia: estado });
-    this.showProfileMenu.set(false); // Cerramos el menú para una experiencia fluida
+    this.showProfileMenu.set(false);
 
     this.authService.cambiarPresencia(user.id, estado).subscribe({
-      next: () => {
-        console.log(`Estado cambiado exitosamente a: ${estado}`);
-      },
+      next: () => {},
       error: (err) => {
         console.error('Error al sincronizar estado con el servidor:', err);
-        // Revertimos al estado anterior en caso de error
         this.currentUser.set({ ...user, estadoPresencia: estadoAnterior });
         alert('No se pudo guardar tu estado en el servidor. Inténtalo de nuevo.');
       }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
+import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from '../utils/password-policy';
 
 @Component({
   selector: 'app-perfil',
@@ -18,19 +19,17 @@ export class PerfilComponent implements OnInit {
   public isEditing = signal<boolean>(false);
   public isChangingPassword = signal<boolean>(false);
   
-  // Visibilidad de contraseñas
   public showActual = signal<boolean>(false);
   public showNueva = signal<boolean>(false);
   public showConfirmar = signal<boolean>(false);
   
-  // Datos temporales para edición
   public editData = {
     nombre: '',
     apellido: '',
     correo: '',
     telefono: '',
     bio: '',
-    foto: '' // Nueva propiedad para la foto
+    foto: ''
   };
 
   public passwordData = {
@@ -41,7 +40,7 @@ export class PerfilComponent implements OnInit {
 
   public passwordMessage = signal<{text: string, type: 'success' | 'error'} | null>(null);
 
-  public currentUser = signal<any>(null); // Aseguramos que existe el signal
+  public currentUser = signal<any>(null);
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -72,7 +71,6 @@ export class PerfilComponent implements OnInit {
       reader.onload = (e: any) => {
         const base64Image = e.target.result;
         this.editData.foto = base64Image;
-        // Previsualización inmediata
         this.currentUser.update(user => ({ ...user, foto: base64Image }));
       };
       reader.readAsDataURL(file);
@@ -103,13 +101,12 @@ export class PerfilComponent implements OnInit {
       Nombre: this.editData.nombre,
       Apellido: this.editData.apellido,
       Telefono: this.editData.telefono,
-      ImgPerfil: this.editData.foto, // Usamos la foto de editData (Base64)
+      ImgPerfil: this.editData.foto,
       Bio: this.editData.bio
     };
 
     this.authService.actualizarPerfil(updatedData).subscribe({
       next: (response) => {
-        console.log('Perfil actualizado:', response);
         this.isEditing.set(false);
       },
       error: (err) => {
@@ -125,8 +122,8 @@ export class PerfilComponent implements OnInit {
       return;
     }
 
-    if (this.passwordData.nueva.length < 6) {
-      this.passwordMessage.set({ text: 'La nueva contraseña debe tener al menos 6 caracteres.', type: 'error' });
+    if (!isPasswordValid(this.passwordData.nueva)) {
+      this.passwordMessage.set({ text: PASSWORD_POLICY_MESSAGE, type: 'error' });
       return;
     }
 

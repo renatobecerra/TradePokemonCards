@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
+import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from '../utils/password-policy';
 
 @Component({
   selector: 'app-recovery',
@@ -29,14 +30,16 @@ export class RecoveryComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     // Sincronizar el estado con los parámetros de la URL
     this.route.queryParams.subscribe(params => {
-      if (params['step']) {
-        this.step = parseInt(params['step']);
+      const requestedStep = Number(params['step']);
+      if ([1, 2, 3].includes(requestedStep)) {
+        this.step = requestedStep;
       }
       if (params['email']) {
         this.correo = params['email'];
@@ -62,30 +65,37 @@ export class RecoveryComponent implements OnInit {
       return;
     }
 
-    // --- CAMBIO OPTIMISTA ---
-    // Pasamos al paso 2 AL TIRO para que no sientas que se pega
-    this.step = 2; 
-    this.isLoading = true; // El cargador se queda en el paso 2 de fondo
+    this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
+
+    this.step = 2;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { step: 2, email: this.correo },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
 
     this.authService.solicitarRecuperacion(this.correo).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.successMessage = '¡Código enviado! Revisa tu correo.';
-        // Actualizamos la URL para que todo sea coherente
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { step: 2, email: this.correo },
-          queryParamsHandling: 'merge'
-        });
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.isLoading = false;
-        // Si falló de verdad (ej: el correo no existe), lo devolvemos al paso 1 para que corrija
         this.step = 1;
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { step: 1, email: this.correo },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
         this.errorMessage = error.error?.mensaje || 'No pudimos encontrar ese correo.';
         console.error('Error en recuperación:', error);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -99,29 +109,33 @@ export class RecoveryComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.authService.validarCodigoRecuperacion(this.correo, this.codigo).subscribe({
       next: (response) => {
         this.isLoading = false;
-        // Navegamos al paso 3
         this.step = 3;
+        this.cdr.detectChanges();
         this.router.navigate([], {
           relativeTo: this.route,
           queryParams: { step: 3, code: this.codigo },
-          queryParamsHandling: 'merge'
+          queryParamsHandling: 'merge',
+          replaceUrl: true
         });
       },
       error: (error) => {
+        console.error('Error de validación:', error);
         this.isLoading = false;
         this.errorMessage = error.error?.mensaje || 'El código es incorrecto o ha expirado.';
+        this.cdr.detectChanges();
       }
     });
   }
 
   // Paso 3: Cambiar contraseña
   resetearPassword() {
-    if (!this.nuevaPassword || this.nuevaPassword.length < 8) {
-      this.errorMessage = 'La nueva contraseña debe tener al menos 8 caracteres.';
+    if (!isPasswordValid(this.nuevaPassword)) {
+      this.errorMessage = PASSWORD_POLICY_MESSAGE;
       return;
     }
 
@@ -143,6 +157,7 @@ export class RecoveryComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         this.successMessage = '¡Contraseña actualizada con éxito! Redirigiendo...';
+        this.cdr.detectChanges();
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 3000);
@@ -150,6 +165,7 @@ export class RecoveryComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         this.errorMessage = error.error?.mensaje || 'Error al actualizar la contraseña. Inténtalo de nuevo.';
+        this.cdr.detectChanges();
       }
     });
   }
