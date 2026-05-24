@@ -1473,9 +1473,8 @@ section {
 .footer-bottom {
   width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 18rem;
   flex-wrap: wrap;
 }
 
@@ -1524,6 +1523,7 @@ section {
 @media (max-width: 768px) {
   .main-footer { padding: 6rem 1.5rem 3rem 1.5rem; }
   .footer-logo { font-size: 2rem; }
-  .footer-bottom { flex-direction: column; gap: 2rem; }
+  .footer-bottom { flex-direction: column; gap: 2rem; justify-content: center; }
+  .footer-legal-links { flex-direction: column; gap: 1rem; }
   .footer-tagline { letter-spacing: 0.2em; font-size: 0.6rem; }
 }
