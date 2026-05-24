@@ -21,7 +21,6 @@ namespace Backend.Controllers
         {
             try
             {
-                // CAMBIO: Usamos _context.Inventarios que sí existe en tu DB
                 var items = await _context.Inventarios.ToListAsync();
                 return Ok(items);
             }
@@ -37,7 +36,6 @@ namespace Backend.Controllers
         {
             try
             {
-                // CAMBIO: Buscamos en Guardados usando IdInventario
                 var yaGuardado = await _context.Guardados
                     .AnyAsync(g => g.IdUsuario == datos.IdUsuario && g.IdItem == datos.IdInventario);
 
@@ -49,7 +47,7 @@ namespace Backend.Controllers
                 var nuevoGuardado = new Guardado 
                 {
                     IdUsuario = datos.IdUsuario,
-                    IdItem = datos.IdInventario, // Mapea al campo idItem de tu tabla Guardado
+                    IdItem = datos.IdInventario,
                     FechaGuardado = DateTime.Now
                 };
 
@@ -68,6 +66,6 @@ namespace Backend.Controllers
     public class GuardarItemDto
     {
         public int IdUsuario { get; set; }
-        public int IdInventario { get; set; } // Nombre más claro según tu contexto
+        public int IdInventario { get; set; }
     }
 }

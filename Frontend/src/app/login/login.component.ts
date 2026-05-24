@@ -34,15 +34,12 @@ export class LoginComponent {
 
     this.authService.login(this.correo, this.contrasena).subscribe({
       next: (response) => {
-        console.log('Login exitoso:', response);
-        // Aquí podrías guardar el usuario en localStorage si fuera necesario
         localStorage.setItem('usuario', JSON.stringify(response.usuario));
-        this.router.navigate(['/explorar']); // Redirige al Marketplace
+        this.router.navigate(['/explorar']);
       },
       error: (error) => {
         console.error('Error en login:', error);
         
-        // Si el servidor indica que falta verificar, redirigimos
         if (error.status === 401 && error.error?.requiereVerificacion) {
           localStorage.setItem('pending_verification_email', this.correo);
           this.router.navigate(['/verify'], { queryParams: { email: this.correo } });

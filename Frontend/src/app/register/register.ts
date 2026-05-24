@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
+import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from '../utils/password-policy';
 
 @Component({
   selector: 'app-register',
@@ -42,10 +43,8 @@ export class RegisterComponent {
       return;
     }
 
-    // Validación de complejidad de contraseña
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-    if (!passwordRegex.test(this.contrasena)) {
-      this.errorMessage = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo.';
+    if (!isPasswordValid(this.contrasena)) {
+      this.errorMessage = PASSWORD_POLICY_MESSAGE;
       return;
     }
 
@@ -62,12 +61,8 @@ export class RegisterComponent {
       contraseña: this.contrasena
     };
 
-    console.log('Enviando registro:', nuevoUsuario);
-
     this.authService.register(nuevoUsuario).subscribe({
       next: (response) => {
-        console.log('Registro exitoso:', response);
-        // Guardamos el correo temporalmente para la verificación
         localStorage.setItem('pending_verification_email', this.correo);
         this.router.navigate(['/verify'], { queryParams: { email: this.correo } });
       },
