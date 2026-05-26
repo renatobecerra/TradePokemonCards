@@ -632,8 +632,29 @@
 }
 
 @media (max-width: 992px) {
+    .perfil-nav .nav-links { display: none; }
+    .user-name-nav { display: none; }
     .perfil-body { grid-template-columns: 1fr; }
-    .perfil-sidebar { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .perfil-sidebar { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem; }
+    .perfil-main { padding: 2rem; }
     .info-grid { grid-template-columns: 1fr; }
     .info-group.full { grid-column: auto; }
+}
+
+@media (max-width: 768px) {
+    .perfil-content { margin: 2rem auto; padding: 0 1rem; }
+    .section-title { font-size: 2.2rem; }
+    .main-header { flex-direction: column; gap: 1.5rem; }
+    .form-row { flex-direction: column; gap: 1rem; }
+    .security-card { padding: 1.5rem; }
+    .btn-save { width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .logo { font-size: 1.5rem; }
+    .btn-back { padding: 0.5rem 1rem; font-size: 0.85rem; }
+    .avatar-wrapper { width: 120px; height: 120px; }
+    .user-full-name { font-size: 1.8rem; }
+    .stats-mini { gap: 0.5rem; }
+    .stat-box { padding: 1rem; }
 }

@@ -337,3 +337,15 @@ h1 {
     .recovery-right { display: none; }
     .recovery-left { padding: 4rem 2rem; background: #000; }
 }
+
+@media (max-width: 768px) {
+    .recovery-left { padding: 2rem 1.5rem; }
+    .recovery-header { margin-bottom: 3rem; }
+    h1 { font-size: 3rem; }
+    .input-group input.code-input { font-size: 1.8rem; letter-spacing: 10px; padding: 1rem; }
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: 2.5rem; }
+    .btn-recovery { padding: 1rem; font-size: 1.1rem; }
+}

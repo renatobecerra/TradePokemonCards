@@ -406,3 +406,31 @@ h1 {
         background: #000;
     }
 }
+
+@media (max-width: 768px) {
+    .login-left {
+        padding: 2rem 1.5rem;
+    }
+    .login-header {
+        margin-bottom: 3rem;
+    }
+    .header-left {
+        gap: 1rem;
+    }
+    h1 {
+        font-size: 3rem;
+    }
+    .subtitle {
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+    .btn-login-submit {
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+}

@@ -12,18 +12,6 @@
       </div>
 
       <div class="nav-right">
-        <div class="user-mini-profile" *ngIf="currentUser()">
-          <span class="user-name-nav">{{ currentUser().nombre }}</span>
-          <div class="avatar-nav">
-            @if (currentUser().foto) {
-              <img [src]="currentUser().foto" alt="Avatar">
-            } @else {
-              <div class="avatar-placeholder-nav">
-                {{ currentUser().nombre.charAt(0) }}{{ currentUser().apellido?.charAt(0) }}
-              </div>
-            }
-          </div>
-        </div>
         <button class="btn-back" routerLink="/explorar">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           VOLVER
