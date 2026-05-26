@@ -293,12 +293,49 @@ input:-webkit-autofill:active {
     box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
 }
 
+/* --- Phone Input Prefix --- */
+.phone-input-group {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.phone-input-group:focus-within {
+    border-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.03);
+    box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
+}
+
+.phone-prefix {
+    padding: 0 1rem;
+    color: #2ecc71;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: 700;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    background: rgba(46, 204, 113, 0.03);
+}
+
+.phone-input-group input {
+    border: none !important;
+    background: transparent !important;
+    flex: 1;
+    box-shadow: none !important;
+}
+
 .terms {
     margin-bottom: 3rem;
     color: rgba(255, 255, 255, 0.3);
     font-size: 0.8rem;
     line-height: 1.5;
 }
+
 
 .terms a {
     color: #2ecc71;
@@ -403,4 +440,30 @@ input:-webkit-autofill:active {
 @media (max-width: 1024px) {
     .register-right { display: none; }
     .register-left { padding: 4rem 2rem; background: #000; }
+}
+
+@media (max-width: 768px) {
+    .register-left {
+        padding: 2rem 1.5rem;
+    }
+    .register-header {
+        margin-bottom: 3rem;
+    }
+    .input-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    h1 {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+    .btn-register-submit {
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
 }

@@ -53,11 +53,16 @@ export class RegisterComponent {
       return;
     }
 
+    if (this.telefono && this.telefono.length !== 9) {
+      this.errorMessage = 'El teléfono debe tener exactamente 9 dígitos.';
+      return;
+    }
+
     const nuevoUsuario = {
       nombre: this.nombre,
       apellido: this.apellido,
       correo: this.correo,
-      telefono: this.telefono,
+      telefono: this.telefono ? '+56' + this.telefono : null,
       contraseña: this.contrasena
     };
 

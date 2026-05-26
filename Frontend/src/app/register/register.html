@@ -41,7 +41,10 @@
 
         <div class="input-group">
           <label for="phone">Número de Teléfono</label>
-          <input type="text" id="phone" name="telefono" [(ngModel)]="telefono" placeholder="+56 9 1234 5678">
+          <div class="phone-input-group">
+            <span class="phone-prefix">+56</span>
+            <input type="tel" id="phone" name="telefono" [(ngModel)]="telefono" placeholder="912345678" maxlength="9">
+          </div>
         </div>
 
         <div class="password-requirements">

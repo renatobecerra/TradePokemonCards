@@ -26,7 +26,6 @@ export class PerfilComponent implements OnInit {
   public editData = {
     nombre: '',
     apellido: '',
-    correo: '',
     telefono: '',
     bio: '',
     foto: ''
@@ -57,8 +56,7 @@ export class PerfilComponent implements OnInit {
     this.editData = {
       nombre: user.nombre || '',
       apellido: user.apellido || '',
-      correo: user.correo || '',
-      telefono: user.telefono || '',
+      telefono: user.telefono ? user.telefono.replace('+56', '') : '',
       bio: user.bio || '',
       foto: user.foto || ''
     };
@@ -95,12 +93,17 @@ export class PerfilComponent implements OnInit {
   }
 
   onSave() {
+    if (this.editData.telefono && this.editData.telefono.length !== 9) {
+      alert('El teléfono debe tener exactamente 9 dígitos.');
+      return;
+    }
+
     const user = this.currentUser();
     const updatedData = {
       UsuarioId: user.id,
       Nombre: this.editData.nombre,
       Apellido: this.editData.apellido,
-      Telefono: this.editData.telefono,
+      Telefono: this.editData.telefono ? '+56' + this.editData.telefono : null,
       ImgPerfil: this.editData.foto,
       Bio: this.editData.bio
     };

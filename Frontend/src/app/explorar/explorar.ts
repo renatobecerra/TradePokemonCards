@@ -33,7 +33,7 @@ export class ExplorarComponent implements OnInit {
 
   onLogout() {
     this.authService.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 
   setPresence(event: Event, estado: number) {
