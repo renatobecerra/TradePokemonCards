@@ -103,8 +103,11 @@ namespace Backend.Services
                     ClientSecrets = new Google.Apis.Auth.OAuth2.ClientSecrets { ClientId = clientID, ClientSecret = clientSecret }
                 }), "user", tokenResponse);
 
+            //Inicio prueba de cod
             await credentials.RefreshTokenAsync(CancellationToken.None);
 
+
+            //FIn inicio de prueba 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("Pokemon Market", senderEmail));
             message.To.Add(new MailboxAddress(nombreUsuario, emailDestino));

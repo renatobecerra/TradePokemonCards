@@ -20,6 +20,8 @@ public partial class PokemonMarketContext : DbContext
 
     public virtual DbSet<Inventario> Inventarios { get; set; }
 
+    public virtual DbSet<InventarioUsuario> InventarioUsuarios { get; set; }
+
     public virtual DbSet<Mensaje> Mensajes { get; set; }
 
     public virtual DbSet<Notificacione> Notificaciones { get; set; }
@@ -32,7 +34,7 @@ public partial class PokemonMarketContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Se deja vacío porque la conexión ahora se maneja desde Program.cs
+        
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -73,21 +75,45 @@ public partial class PokemonMarketContext : DbContext
 
             entity.ToTable("inventario");
 
-            entity.HasIndex(e => e.IdUsuarios, "FK_Inventario_Usuario");
-
             entity.Property(e => e.IdItem).HasColumnName("ID_Item");
             entity.Property(e => e.Edicion).HasMaxLength(100);
-            entity.Property(e => e.Estado).HasMaxLength(50);
-            entity.Property(e => e.IdUsuarios).HasColumnName("ID_Usuarios");
             entity.Property(e => e.ImgLink)
                 .HasMaxLength(500)
                 .HasColumnName("IMG_Link");
             entity.Property(e => e.Nombre).HasMaxLength(100);
             entity.Property(e => e.Rareza).HasMaxLength(50);
+        });
 
-            entity.HasOne(d => d.IdUsuariosNavigation).WithMany(p => p.Inventarios)
-                .HasForeignKey(d => d.IdUsuarios)
-                .HasConstraintName("FK_Inventario_Usuario");
+        modelBuilder.Entity<InventarioUsuario>(entity =>
+        {
+            entity.HasKey(e => e.IdInventarioUser).HasName("PRIMARY");
+
+            entity.ToTable("inventario_usuario");
+
+            entity.HasIndex(e => e.IdItem, "FK_InvUser_Item");
+
+            entity.HasIndex(e => e.IdUsuario, "FK_InvUser_Usuario");
+
+            entity.Property(e => e.IdInventarioUser).HasColumnName("ID_Inventario_User");
+            entity.Property(e => e.Cantidad).HasDefaultValueSql("'1'");
+            entity.Property(e => e.EstadoFisico)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("'Perfecto Estado'")
+                .HasColumnName("Estado_Fisico");
+            entity.Property(e => e.FechaObtencion)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("Fecha_Obtencion");
+            entity.Property(e => e.IdItem).HasColumnName("ID_Item");
+            entity.Property(e => e.IdUsuario).HasColumnName("ID_Usuario");
+
+            entity.HasOne(d => d.IdItemNavigation).WithMany(p => p.InventarioUsuarios)
+                .HasForeignKey(d => d.IdItem)
+                .HasConstraintName("FK_InvUser_Item");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.InventarioUsuarios)
+                .HasForeignKey(d => d.IdUsuario)
+                .HasConstraintName("FK_InvUser_Usuario");
         });
 
         modelBuilder.Entity<Mensaje>(entity =>
@@ -207,29 +233,28 @@ public partial class PokemonMarketContext : DbContext
             entity.HasIndex(e => e.Correo, "Correo").IsUnique();
 
             entity.Property(e => e.IdUsuarios).HasColumnName("ID_Usuarios");
+            entity.Property(e => e.Apellido).HasMaxLength(100);  
             entity.Property(e => e.Calificacion)
                 .HasPrecision(3, 2)
-                .HasDefaultValueSql("'0.00'");
+                .HasDefaultValueSql("'5.00'");
+            entity.Property(e => e.CodigoRecuperacion).HasMaxLength(6);
+            entity.Property(e => e.CodigoVerificacion).HasMaxLength(6);
             entity.Property(e => e.Contraseña).HasMaxLength(255);
             entity.Property(e => e.Correo).HasMaxLength(150);
+            entity.Property(e => e.Descripcion).HasColumnType("text");
+            entity.Property(e => e.EsVerificado).HasDefaultValueSql("'0'");
             entity.Property(e => e.Estado).HasDefaultValueSql("'1'");
-            entity.Property(e => e.FechaRegistro)
+            entity.Property(e => e.EstadoPresencia).HasDefaultValueSql("'1'"); // NO ESTA EN LA ORIGINAL.
+            entity.Property(e => e.FechaRegistro)  
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("Fecha_Registro");
-            entity.Property(e => e.ImgPerfil)
-                .HasColumnType("longtext")
-                .HasColumnName("IMG_Perfil");
+            entity.Property(e => e.ImgPerfil).HasColumnName("IMG_Perfil");
             entity.Property(e => e.Nombre).HasMaxLength(100);
-            entity.Property(e => e.Apellido).HasMaxLength(100);
             entity.Property(e => e.Rol)
                 .HasMaxLength(20)
                 .HasDefaultValueSql("'Usuario'");
             entity.Property(e => e.Telefono).HasMaxLength(20);
-            entity.Property(e => e.CodigoVerificacion).HasMaxLength(6);
-            entity.Property(e => e.EsVerificado).HasDefaultValueSql("'0'");
-            entity.Property(e => e.CodigoRecuperacion).HasMaxLength(6);
-            entity.Property(e => e.Descripcion).HasColumnType("text");
         });
 
         OnModelCreatingPartial(modelBuilder);
