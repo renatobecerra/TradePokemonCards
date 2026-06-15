@@ -15,6 +15,8 @@ public partial class Inventario
 
     public string? ImgLink { get; set; }
 
+    public int? precio {get; set; }
+
     public virtual ICollection<Guardado> Guardados { get; set; } = new List<Guardado>();
 
     public virtual ICollection<InventarioUsuario> InventarioUsuarios { get; set; } = new List<InventarioUsuario>();
