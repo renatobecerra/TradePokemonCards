@@ -78,6 +78,7 @@ public partial class PokemonMarketContext : DbContext
             entity.Property(e => e.IdItem).HasColumnName("ID_Item");
             entity.Property(e => e.Edicion).HasMaxLength(100);
             entity.Property(e => e.precio);
+            entity.Property(e => e.id_tgc).HasMaxLength(20);
             entity.Property(e => e.ImgLink)
                 .HasMaxLength(500)
                 .HasColumnName("IMG_Link");
