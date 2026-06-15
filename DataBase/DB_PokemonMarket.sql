@@ -90,3 +90,20 @@ CREATE TABLE Top_Registros (
     CONSTRAINT FK_Top_Item FOREIGN KEY (ID_Item) 
         REFERENCES Inventario(ID_Item) ON DELETE CASCADE
 );
+
+CREATE TABLE Inventario_Usuario (
+    ID_Inventario_User INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Usuario INT NOT NULL,
+    ID_Item INT NOT NULL, -- Apunta al catálogo global
+    Estado_Fisico VARCHAR(50) DEFAULT 'Perfecto Estado', -- Ej: Mint, Played, Damaged
+    Cantidad INT DEFAULT 1, -- Por si un usuario tiene repetida la misma carta
+    Fecha_Obtencion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FK_InvUser_Usuario FOREIGN KEY (ID_Usuario) 
+        REFERENCES Usuario(ID_Usuarios) ON DELETE CASCADE,
+    CONSTRAINT FK_InvUser_Item FOREIGN KEY (ID_Item) 
+        REFERENCES Inventario(ID_Item) ON DELETE CASCADE
+);
+
+ALTER TABLE Inventario DROP FOREIGN KEY FK_Inventario_Usuario;
+ALTER TABLE Inventario DROP COLUMN ID_Usuarios;
+ALTER TABLE Inventario DROP COLUMN Estado;
