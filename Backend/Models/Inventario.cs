@@ -17,6 +17,8 @@ public partial class Inventario
 
     public int? precio {get; set; }
 
+    public string? id_tgc {get; set; }
+
     public virtual ICollection<Guardado> Guardados { get; set; } = new List<Guardado>();
 
     public virtual ICollection<InventarioUsuario> InventarioUsuarios { get; set; } = new List<InventarioUsuario>();

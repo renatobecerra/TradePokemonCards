@@ -107,3 +107,5 @@ CREATE TABLE Inventario_Usuario (
 ALTER TABLE Inventario DROP FOREIGN KEY FK_Inventario_Usuario;
 ALTER TABLE Inventario DROP COLUMN ID_Usuarios;
 ALTER TABLE Inventario DROP COLUMN Estado;
+ALTER TABLE inventario ADD COLUMN precio INT;
+ALTER TABLE inventario ADD COLUMN id_tgc VARCHAR(20);
