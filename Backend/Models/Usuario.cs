@@ -11,13 +11,13 @@ public partial class Usuario
 
     public string? Apellido { get; set; }
 
-    public string Contraseña { get; set; } = null!;
-
     public string? CodigoVerificacion { get; set; }
 
-    public bool EsVerificado { get; set; } = false;
+    public bool? EsVerificado { get; set; }
 
     public string? CodigoRecuperacion { get; set; }
+
+    public string Contraseña { get; set; } = null!;
 
     public string Correo { get; set; } = null!;
 
@@ -31,15 +31,15 @@ public partial class Usuario
 
     public decimal? Calificacion { get; set; }
 
-    public string? ImgPerfil { get; set; }
-
-    public sbyte? EstadoPresencia { get; set; } = 1;
+    public sbyte? EstadoPresencia { get; set; }
 
     public string? Descripcion { get; set; }
 
+    public string? ImgPerfil { get; set; }
+
     public virtual ICollection<Guardado> Guardados { get; set; } = new List<Guardado>();
 
-    public virtual ICollection<Inventario> Inventarios { get; set; } = new List<Inventario>();
+    public virtual ICollection<InventarioUsuario> InventarioUsuarios { get; set; } = new List<InventarioUsuario>();
 
     public virtual ICollection<Mensaje> MensajeIdDestinatarioNavigations { get; set; } = new List<Mensaje>();
 

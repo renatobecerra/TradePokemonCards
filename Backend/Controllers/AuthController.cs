@@ -287,7 +287,7 @@ namespace Backend.Controllers
                     return Unauthorized(new {mensaje = "Correo o Contraseña incorrectas."});
                 }
 
-                if (!usuarioExistente.EsVerificado)
+                if (usuarioExistente.EsVerificado != true)
                 {
                     return Unauthorized(new { mensaje = "Por favor, verifica tu cuenta a través de tu correo electrónico antes de iniciar sesión.", requiereVerificacion = true });
                 }
