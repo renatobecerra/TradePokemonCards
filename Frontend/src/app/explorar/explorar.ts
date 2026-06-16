@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { TcgService } from '../services/tcg.service';
 
 @Component({
   selector: 'app-explorar',
@@ -12,10 +13,12 @@ import { AuthService } from '../services/auth.service';
 })
 export class ExplorarComponent implements OnInit {
   private authService = inject(AuthService);
+  private tcgService = inject(TcgService);
   private router = inject(Router);
 
   public currentUser = signal<any>(null);
   public showProfileMenu = signal<boolean>(false);
+  public cartasTcg = signal<any[]>([]);
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -23,6 +26,11 @@ export class ExplorarComponent implements OnInit {
         this.router.navigate(['/login']);
       }
       this.currentUser.set(user);
+    });
+
+    this.tcgService.getCartas().subscribe({
+      next: (data) => this.cartasTcg.set(data),
+      error: (err) => console.error('Error cargando TCGdex', err)
     });
   }
 

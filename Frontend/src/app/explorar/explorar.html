@@ -71,7 +71,23 @@
     </div>
   </nav>
 
-  <!-- Marketplace Content - Vacío por ahora -->
+  <!-- Marketplace Content -->
   <main class="explorar-content">
+    <div class="tcg-container">
+      <h1 class="section-title">Cartas Destacadas (TCGdex)</h1>
+      <div class="tcg-grid">
+        @for (card of cartasTcg(); track card.id) {
+          <div class="card-item">
+            <div class="card-image-wrapper">
+              <img [src]="card.image + '/low.jpg'" [alt]="card.name" class="card-img">
+            </div>
+            <div class="card-info">
+              <h3 class="card-name">{{ card.name }}</h3>
+              <p class="card-rarity">{{ card.rarity || 'Común' }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
   </main>
 </div>

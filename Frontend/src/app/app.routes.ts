@@ -5,6 +5,7 @@ import { RegisterComponent } from './register/register';
 import { VerifyComponent } from './verify/verify.component';
 import { RecoveryComponent } from './recovery/recovery';
 import { ExplorarComponent } from './explorar/explorar';
+import { InventarioComponent } from './inventario/inventario';
 import { PerfilComponent } from './perfil/perfil';
 import { TermsComponent } from './terms/terms';
 import { authGuard } from './auth.guard';
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'verify', component: VerifyComponent },
   { path: 'recovery', component: RecoveryComponent },
   { path: 'explorar', component: ExplorarComponent, canActivate: [authGuard] },
+  { path: 'inventario', component: InventarioComponent, canActivate: [authGuard] },
   { path: 'perfil', component: PerfilComponent, canActivate: [authGuard] },
   { path: 'terminos', component: TermsComponent }
 ];

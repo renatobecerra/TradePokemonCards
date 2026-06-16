@@ -23,6 +23,7 @@ builder.Services.AddDbContext<PokemonMarketContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 
 var app = builder.Build();
