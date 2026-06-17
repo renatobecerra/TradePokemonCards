@@ -3,260 +3,180 @@
     background-color: #000;
     color: #fff;
     font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow-x: hidden;
 }
 
-/* --- NAV --- */
-.perfil-nav {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 1rem 0;
-    position: sticky;
+/* --- DECORACIÓN MESH (Cyberpunk Glow) --- */
+.mesh-decor {
+    position: absolute;
     top: 0;
-    z-index: 100;
-}
-
-.perfil-nav .nav-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 2rem;
-}
-
-.perfil-nav .logo {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 1.8rem;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-}
-
-.perfil-nav .bracket { color: #2ecc71; }
-
-.perfil-nav .nav-links {
-    display: flex;
-    gap: 2.5rem;
-}
-
-.perfil-nav .nav-links a {
-    color: rgba(255, 255, 255, 0.5);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    transition: 0.3s;
-}
-
-.perfil-nav .nav-links a:hover { color: #2ecc71; }
-
-/* --- Nav Right Profile --- */
-.perfil-nav .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-
-.user-mini-profile {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding-right: 1.5rem;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.user-name-nav {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
-    color: #2ecc71;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-}
-
-.avatar-nav {
-    width: 32px;
-    height: 32px;
-}
-
-.avatar-nav img {
+    left: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.glow {
+    position: absolute;
     border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid rgba(46, 204, 113, 0.3);
+    filter: blur(100px);
+    opacity: 0.15;
 }
 
-.avatar-placeholder-nav {
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.9rem;
-    color: #2ecc71;
-    border: 1px solid rgba(46, 204, 113, 0.2);
+.g1 {
+    width: 600px;
+    height: 600px;
+    background: #2ecc71;
+    top: -200px;
+    left: -200px;
 }
 
-.btn-back {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 0.6rem 1.5rem;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    cursor: pointer;
-    transition: 0.3s;
-    border-radius: 12px;
-}
-
-.btn-back:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #2ecc71;
-    color: #2ecc71;
-    transform: translateX(-5px);
+.g2 {
+    width: 500px;
+    height: 500px;
+    background: #2ecc71;
+    bottom: -150px;
+    right: -150px;
 }
 
 /* --- CONTENT --- */
 .perfil-content {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 4rem auto;
-    padding: 0 2rem;
-}
-
-.perfil-card {
-    background: #0a0a0a;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 30px;
-    overflow: hidden;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-}
-
-.card-header-visual {
-    height: 160px;
-    background: linear-gradient(135deg, #111 0%, #000 100%);
-    position: relative;
-}
-
-.card-header-visual::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 20% 50%, rgba(46, 204, 113, 0.1) 0%, transparent 70%);
-}
-
-.perfil-body {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    min-height: 600px;
-}
-
-/* --- SIDEBAR --- */
-.perfil-sidebar {
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 3rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.01);
-}
-
-.avatar-section {
-    text-align: center;
-    margin-top: -80px;
-    margin-bottom: 3rem;
+    padding: 0 4rem;
     position: relative;
     z-index: 10;
 }
 
-.avatar-wrapper {
+.perfil-card-premium {
+    background: rgba(10, 10, 10, 0.4);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8);
+    position: relative;
+}
+
+.perfil-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    min-height: 800px;
+}
+
+/* --- SIDEBAR IZQUIERDA --- */
+.perfil-sidebar {
+    background: rgba(255, 255, 255, 0.02);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avatar-container {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    width: 100%;
+}
+
+.avatar-main {
     width: 140px;
     height: 140px;
     margin: 0 auto 1.5rem auto;
     position: relative;
+    z-index: 2;
 }
 
-.profile-img {
+.avatar-img {
     width: 100%;
     height: 100%;
-    border-radius: 40px;
     object-fit: cover;
-    border: 4px solid #0a0a0a;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border-radius: 35px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
 }
 
-.profile-placeholder {
+.avatar-placeholder {
     width: 100%;
     height: 100%;
-    border-radius: 40px;
-    background: linear-gradient(135deg, #1a1a1a, #000);
-    border: 4px solid #0a0a0a;
+    border-radius: 35px;
+    background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 3rem;
+    font-size: 3.5rem;
     color: #2ecc71;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(46, 204, 113, 0.3);
 }
 
-.btn-change-photo {
+.avatar-glow-ring {
     position: absolute;
-    bottom: -10px;
-    right: -10px;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(46, 204, 113, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.btn-edit-avatar {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
     width: 40px;
     height: 40px;
     background: #2ecc71;
     color: #000;
-    border: 4px solid #0a0a0a;
+    border: 3px solid #0a0a0a;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.btn-change-photo:hover { transform: scale(1.1); background: #fff; }
-
-.user-full-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.2rem;
-    line-height: 1;
-    margin-bottom: 0.5rem;
+.btn-edit-avatar:hover {
+    transform: scale(1.1) rotate(10deg);
+    background: #fff;
 }
 
-.user-role {
+.sidebar-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.02em;
+}
+
+.sidebar-role {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #2ecc71;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.3em;
 }
 
-.stats-mini {
+.sidebar-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     width: 100%;
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
 }
 
-.stat-box {
+.stat-item {
     background: rgba(255, 255, 255, 0.03);
-    padding: 1.2rem;
+    padding: 1.2rem 0.8rem;
     border-radius: 18px;
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -266,429 +186,440 @@
     display: block;
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.8rem;
-    line-height: 1;
     color: #fff;
+    line-height: 1;
+    margin-bottom: 0.2rem;
 }
 
-.stat-lbl {
-    font-size: 0.65rem;
+.stat-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
     color: rgba(255, 255, 255, 0.3);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
 }
 
-.sidebar-menu {
+.sidebar-nav {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.6rem;
 }
 
-.menu-btn {
+.nav-item {
     width: 100%;
-    padding: 0.8rem 1.2rem;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    text-align: left;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    padding: 0.8rem 1rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 14px;
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 1rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-.menu-btn.active {
-    background: rgba(46, 204, 113, 0.1);
-    color: #2ecc71;
-    border-color: rgba(46, 204, 113, 0.3);
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.1);
+.nav-item .item-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
 }
 
-.menu-btn:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.05);
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.03);
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.1);
     transform: translateX(5px);
 }
 
-.menu-btn.logout { 
-    color: #e74c3c; 
-    margin-top: 0.5rem; 
-    border-color: rgba(231, 76, 60, 0.1);
+.nav-item.active {
+    background: rgba(46, 204, 113, 0.08);
+    border-color: rgba(46, 204, 113, 0.2);
+    color: #fff;
 }
 
-.menu-btn.logout:hover { 
-    background: rgba(231, 76, 60, 0.1); 
-    border-color: #e74c3c;
+.nav-item.active .item-icon {
+    background: #2ecc71;
+    color: #000;
+}
+
+.nav-item.logout {
+    color: #e74c3c;
+    margin-top: 0.5rem;
+}
+
+.nav-item.logout:hover {
+    background: rgba(231, 76, 60, 0.1);
     color: #ff6b6b;
 }
 
-/* --- MAIN CONTENT --- */
+.nav-item.logout:hover .item-icon {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* --- SECCIÓN PRINCIPAL --- */
 .perfil-main {
-    padding: 4rem;
+    padding: 3.5rem;
 }
 
 .main-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 4rem;
+    align-items: flex-end;
+    margin-bottom: 3.5rem;
 }
 
-.section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 3rem;
-    margin-bottom: 0.5rem;
-}
-
-.section-desc {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 1rem;
-}
-
-.btn-edit-toggle {
-    background: transparent;
-    border: 2px solid #2ecc71;
-    color: #2ecc71;
-    padding: 0.6rem 2rem;
-    font-family: 'Bebas Neue', sans-serif;
-    font-weight: 900;
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 12px;
-}
-
-.btn-edit-toggle:hover {
-    background: #2ecc71;
-    color: #000;
-}
-
-.btn-edit-toggle.editing {
-    border-color: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2.5rem;
-    margin-bottom: 4rem;
-}
-
-.info-group.full { grid-column: span 2; }
-
-.info-group label {
-    display: block;
+.eyebrow {
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.7rem;
     color: #2ecc71;
+    letter-spacing: 0.4em;
     margin-bottom: 0.8rem;
-    letter-spacing: 0.2em;
+    display: block;
 }
 
-.val-text {
+.main-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    margin: 0;
+}
+
+.main-title .dot { color: #2ecc71; }
+
+.btn-toggle-edit {
+    background: #2ecc71;
+    color: #000;
+    border: none;
+    padding: 0.8rem 2.2rem;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 1.1rem;
-    font-weight: 500;
+    font-weight: 900;
+    cursor: pointer;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-toggle-edit:hover {
+    background: #fff;
+    transform: translateY(-5px);
+}
+
+.btn-toggle-edit.cancel {
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
 }
 
-.bio-text {
+.btn-toggle-edit.cancel:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* --- INFO GRID --- */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-group.full-width { grid-column: span 2; }
+
+.form-group label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.8rem;
+}
+
+.label-decor { color: #2ecc71; font-weight: 900; margin-right: 5px; }
+
+.value-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.2rem;
+    border-radius: 14px;
+    font-size: 1rem;
+    color: #fff;
+    transition: 0.3s;
+}
+
+.value-box.readonly {
+    background: rgba(255, 255, 255, 0.01);
+    border-style: dashed;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.hint {
+    font-size: 0.7rem;
+    color: rgba(46, 204, 113, 0.5);
+    margin-top: 0.6rem;
+    display: block;
+}
+
+.value-box.bio {
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.7);
     text-align: justify;
 }
 
-.info-grid input, .info-grid textarea {
+/* --- EDIT MODE INPUTS & PASSWORD INPUTS --- */
+.info-grid input, .info-grid textarea, .password-form-premium input {
     width: 100%;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 1rem;
+    padding: 1rem 1.2rem;
+    border-radius: 14px;
     color: #fff;
-    font-family: inherit;
+    font-family: 'Inter', sans-serif;
     font-size: 1rem;
+    outline: none;
     transition: 0.3s;
 }
 
-.info-grid input:focus, .info-grid textarea:focus {
+.info-grid input:focus, .info-grid textarea:focus, .password-form-premium input:focus {
     border-color: #2ecc71;
-    background: rgba(46, 204, 113, 0.05);
-    outline: none;
+    background: rgba(46, 204, 113, 0.05) !important;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.1);
 }
 
-/* --- Phone Input Prefix --- */
-.phone-input-group {
+/* Reset Autofill Styles */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #fff;
+    -webkit-box-shadow: 0 0 0px 1000px #0a0a0a inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.phone-wrapper {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
-    transition: 0.3s;
 }
 
-.phone-input-group:focus-within {
-    border-color: #2ecc71;
-    background: rgba(46, 204, 113, 0.05);
-}
-
-.phone-prefix {
-    padding: 0 1rem;
+.phone-wrapper .prefix {
+    padding: 0 1.2rem;
+    background: rgba(46, 204, 113, 0.1);
     color: #2ecc71;
     font-family: 'Share Tech Mono', monospace;
     font-weight: 700;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
     height: 100%;
     display: flex;
     align-items: center;
-    background: rgba(46, 204, 113, 0.05);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.phone-input-group input {
+.phone-wrapper input {
     border: none !important;
     background: transparent !important;
-    flex: 1;
 }
 
-.save-actions {
+/* --- SAVE BUTTON --- */
+.save-zone {
     display: flex;
     justify-content: flex-end;
     margin-top: -1rem;
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
 }
 
-.btn-save {
+.btn-save-changes {
     background: #2ecc71;
     color: #000;
     border: none;
-    padding: 0.8rem 3rem;
+    padding: 1rem 3rem;
     font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
     font-weight: 900;
-    font-size: 1.2rem;
-    letter-spacing: 0.05em;
+    border-radius: 16px;
     cursor: pointer;
     transition: 0.3s;
-    box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);
-    border-radius: 14px;
+    box-shadow: 0 15px 30px rgba(46, 204, 113, 0.3);
 }
 
-.btn-save:hover { 
-    transform: translateY(-3px); 
+.btn-save-changes:hover {
     background: #fff;
-    box-shadow: 0 15px 30px rgba(46, 204, 113, 0.4); 
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(46, 204, 113, 0.5);
 }
 
-/* --- SECURITY MINI --- */
-.security-mini-section {
+/* --- SEGURIDAD --- */
+.security-section {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding-top: 3rem;
+    padding-top: 2rem;
 }
 
-.mini-title {
+.security-title {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
+    font-size: 2.2rem;
     margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
 }
 
-.security-card {
-    background: rgba(255, 255, 255, 0.02);
+.security-card-glow {
+    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 100%);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    padding: 1.5rem 2rem;
+    border-radius: 25px;
+    padding: 2rem;
+    transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.security-card-glow.expanded {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(46, 204, 113, 0.2);
+}
+
+.security-compact {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.sec-lbl {
-    font-size: 0.7rem;
+.sec-label {
+    font-size: 0.65rem;
     color: rgba(255, 255, 255, 0.3);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.2rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.4rem;
 }
 
-.sec-val { font-size: 1.1rem; color: #fff; }
+.sec-value { font-size: 1.1rem; color: #fff; font-weight: 500; }
 
-.btn-sec-action {
+.btn-open-pass {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
-    padding: 0.6rem 1.5rem;
+    padding: 0.7rem 1.8rem;
+    border-radius: 12px;
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1rem;
     font-weight: 900;
-    letter-spacing: 0.05em;
     cursor: pointer;
     transition: 0.3s;
-    border-radius: 12px;
 }
 
-.btn-sec-action:hover {
-    background: #2ecc71;
+.btn-open-pass:hover {
     border-color: #2ecc71;
-    color: #000;
+    color: #2ecc71;
+    background: rgba(46, 204, 113, 0.05);
 }
 
-/* --- Password Form --- */
-.security-card.expanded {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2rem;
-}
-
-.password-form {
+/* --- PASSWORD FORM --- */
+.password-form-premium {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    animation: fadeIn 0.4s ease-out;
 }
 
-.form-row {
-    display: flex;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
 }
 
-.password-form .input-group {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.password-wrapper {
+.pass-input-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
 }
 
-.password-wrapper input {
+.pass-input-wrapper input {
     width: 100%;
-    padding-right: 3.5rem; /* Espacio para el icono */
+    padding-right: 3.5rem !important;
 }
 
-.btn-toggle-pass {
+.btn-toggle-eye {
     position: absolute;
     right: 1rem;
-    background: transparent;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.2);
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     transition: 0.3s;
-    padding: 0.5rem;
 }
 
-.btn-toggle-pass:hover {
-    color: #2ecc71;
-}
+.btn-toggle-eye:hover { color: #2ecc71; }
 
-.password-form label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: #2ecc71;
-    letter-spacing: 0.1em;
-}
-
-.password-form input {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 0.8rem 1rem;
-    color: #fff;
-    font-size: 0.9rem;
-}
-
-.password-form input:focus {
-    outline: none;
-    border-color: #2ecc71;
-}
-
-.password-feedback {
+.pass-msg {
     padding: 0.8rem 1.2rem;
     border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.password-feedback.error {
-    background: rgba(231, 76, 60, 0.1);
-    color: #e74c3c;
-    border: 1px solid rgba(231, 76, 60, 0.2);
-}
-
-.password-feedback.success {
     background: rgba(46, 204, 113, 0.1);
     color: #2ecc71;
-    border: 1px solid rgba(46, 204, 113, 0.2);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-left: 3px solid #2ecc71;
 }
 
-.form-actions {
+.pass-msg.err {
+    background: rgba(231, 76, 60, 0.1);
+    color: #ff6b6b;
+    border-left-color: #e74c3c;
+}
+
+.pass-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 1.2rem;
 }
 
 .btn-cancel-pass {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    padding: 0.6rem 1.5rem;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1rem;
-    font-weight: 900;
-    letter-spacing: 0.05em;
     cursor: pointer;
-    border-radius: 12px;
+    transition: 0.3s;
 }
 
 .btn-confirm-pass {
     background: #2ecc71;
     color: #000;
     border: none;
-    padding: 0.6rem 1.5rem;
+    padding: 0.7rem 2.2rem;
+    border-radius: 10px;
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1rem;
     font-weight: 900;
-    letter-spacing: 0.05em;
     cursor: pointer;
-    border-radius: 12px;
+    transition: 0.3s;
 }
 
-@media (max-width: 992px) {
-    .perfil-nav .nav-links { display: none; }
-    .user-name-nav { display: none; }
-    .perfil-body { grid-template-columns: 1fr; }
-    .perfil-sidebar { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem; }
-    .perfil-main { padding: 2rem; }
-    .info-grid { grid-template-columns: 1fr; }
-    .info-group.full { grid-column: auto; }
+.btn-confirm-pass:hover { background: #fff; }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1200px) {
+    .perfil-layout { grid-template-columns: 1fr; }
+    .perfil-sidebar { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .perfil-content { padding: 0 2rem; }
 }
 
 @media (max-width: 768px) {
-    .perfil-content { margin: 2rem auto; padding: 0 1rem; }
-    .section-title { font-size: 2.2rem; }
-    .main-header { flex-direction: column; gap: 1.5rem; }
-    .form-row { flex-direction: column; gap: 1rem; }
-    .security-card { padding: 1.5rem; }
-    .btn-save { width: 100%; }
-}
-
-@media (max-width: 480px) {
-    .logo { font-size: 1.5rem; }
-    .btn-back { padding: 0.5rem 1rem; font-size: 0.85rem; }
-    .avatar-wrapper { width: 120px; height: 120px; }
-    .user-full-name { font-size: 1.8rem; }
-    .stats-mini { gap: 0.5rem; }
-    .stat-box { padding: 1rem; }
+    .perfil-main { padding: 2.5rem 1.5rem; }
+    .main-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+    .info-grid { grid-template-columns: 1fr; }
+    .form-group.full-width { grid-column: auto; }
+    .two-cols { grid-template-columns: 1fr; }
 }

@@ -1,14 +1,15 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from '../utils/password-policy';
+import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, FormsModule, CompNavBarComponent],
   templateUrl: './perfil.html',
   styleUrls: ['./perfil.css']
 })

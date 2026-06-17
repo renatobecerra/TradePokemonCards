@@ -1,22 +1,27 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { TcgService } from '../services/tcg.service';
+import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-inventario',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CompNavBarComponent],
   templateUrl: './inventario.html',
   styleUrls: ['./inventario.css']
 })
-export class InventarioComponent implements OnInit {
+export class InventarioComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private tcgService = inject(TcgService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+
+  private destroy$ = new Subject<void>();
+  private searchSubject = new Subject<void>();
 
   public currentUser = signal<any>(null);
   public miInventario = signal<any[]>([]);
@@ -32,17 +37,21 @@ export class InventarioComponent implements OnInit {
   public sets = signal<any[]>([]);
   public cardSeleccionada = signal<any>(null);
 
-  // Filtros
+  // Filtros Catálogo
   public filtroNombre = signal<string>('');
   public filtroRareza = signal<string>('');
-  public filtroEdicion = signal<string>('');
+  public filtroSet = signal<string>('');
+
+  // Filtro para el inventario propio
+  public busquedaInventario = signal<string>('');
 
   public cardForm: FormGroup;
 
   constructor() {
     this.cardForm = this.fb.group({
       estado: ['Excelente', [Validators.required]],
-      precio: [null, [Validators.required, Validators.min(0)]]
+      precio: [null, [Validators.required, Validators.min(0)]],
+      cantidad: [1, [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -58,6 +67,24 @@ export class InventarioComponent implements OnInit {
 
     this.cargarFiltros();
     this.buscarEnCatalogo();
+
+    // Setup debounced search
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.buscarEnCatalogo();
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearchChange() {
+    this.searchSubject.next();
   }
 
   cargarInventario() {
@@ -70,6 +97,17 @@ export class InventarioComponent implements OnInit {
     }
   }
 
+  // Getter para el inventario filtrado
+  public inventarioFiltrado() {
+    const busqueda = this.busquedaInventario().toLowerCase();
+    if (!busqueda) return this.miInventario();
+    return this.miInventario().filter(item => 
+      item.nombre.toLowerCase().includes(busqueda) || 
+      item.rareza.toLowerCase().includes(busqueda) ||
+      item.edicion.toLowerCase().includes(busqueda)
+    );
+  }
+
   cargarFiltros() {
     this.tcgService.getRarities().subscribe(data => this.rarities.set(data));
     this.tcgService.getSets().subscribe(data => this.sets.set(data));
@@ -77,7 +115,7 @@ export class InventarioComponent implements OnInit {
 
   buscarEnCatalogo() {
     this.cargando.set(true);
-    this.tcgService.getCartas(this.filtroNombre(), this.filtroRareza()).subscribe({
+    this.tcgService.getCartas(this.filtroNombre(), this.filtroRareza(), this.filtroSet()).subscribe({
       next: (data) => {
         this.catalogoTcg.set(data);
         this.cargando.set(false);
@@ -91,6 +129,7 @@ export class InventarioComponent implements OnInit {
     this.idEditando.set(null);
     this.step.set(1);
     this.mostrarModal.set(true);
+    this.cardForm.reset({ estado: 'Excelente', cantidad: 1 });
     this.buscarEnCatalogo();
   }
 
@@ -100,11 +139,13 @@ export class InventarioComponent implements OnInit {
     this.cardSeleccionada.set({
       name: item.nombre,
       rarity: item.rareza,
-      image: item.imgLink.replace('/high.jpg', '') 
+      image: item.imgLink.replace('/high.jpg', ''),
+      set: { name: item.edicion }
     });
     this.cardForm.patchValue({
       estado: item.estado,
-      precio: item.precio
+      precio: item.precio,
+      cantidad: item.cantidad || 1
     });
     this.step.set(2);
     this.mostrarModal.set(true);
@@ -115,7 +156,7 @@ export class InventarioComponent implements OnInit {
     this.cardSeleccionada.set(null);
     this.modoEdicion.set(false);
     this.idEditando.set(null);
-    this.cardForm.reset({ estado: 'Excelente' });
+    this.cardForm.reset({ estado: 'Excelente', cantidad: 1 });
   }
 
   seleccionarCard(card: any) {
@@ -124,8 +165,12 @@ export class InventarioComponent implements OnInit {
       next: (detalles) => {
         this.cardSeleccionada.set(detalles);
         const precioApi = detalles.pricing?.tcgplayer?.market || detalles.pricing?.cardmarket?.avg;
+        // Conversión aproximada a CLP (1 USD = 950 CLP) y redondeo
+        const precioCLP = precioApi ? Math.round(precioApi * 950) : null;
+        
         this.cardForm.patchValue({
-          precio: precioApi || null
+          precio: precioCLP,
+          cantidad: 1
         });
         this.step.set(2);
         this.cargando.set(false);
@@ -164,11 +209,12 @@ export class InventarioComponent implements OnInit {
       idUsuario: user.id,
       nombre: card.name,
       estado: this.cardForm.value.estado,
-      rarity: card.rarity,
-      edicion: 'TCGdex Set', 
-      imgLink: card.image.includes('http') ? card.image : card.image + '/high.jpg',
+      rareza: card.rarity,
+      edicion: card.set?.name || 'Desconocida', 
+      imgLink: card.image ? (card.image.endsWith('.jpg') || card.image.endsWith('.png') ? card.image : `${card.image}/high.jpg`) : null,
       idTgc: card.id || null,
-      precio: this.cardForm.value.precio
+      precio: this.cardForm.value.precio,
+      cantidad: this.cardForm.value.cantidad
     };
 
     const request = this.modoEdicion() 
@@ -191,5 +237,22 @@ export class InventarioComponent implements OnInit {
   getPrecioReferencial(): number | null {
     const card = this.cardSeleccionada();
     return card?.pricing?.tcgplayer?.market || card?.pricing?.cardmarket?.avg || null;
+  }
+
+  getRarityClass(rarity: string): string {
+    const r = rarity?.toLowerCase() || '';
+    if (r.includes('rare') || r.includes('holo') || r.includes('vmax') || r.includes('vstar')) return 'rarity-high';
+    if (r.includes('uncommon')) return 'rarity-mid';
+    return 'rarity-low';
+  }
+
+  decrementarCantidad() {
+    const current = this.cardForm.get('cantidad')?.value || 1;
+    this.cardForm.get('cantidad')?.setValue(Math.max(1, current - 1));
+  }
+
+  incrementarCantidad() {
+    const current = this.cardForm.get('cantidad')?.value || 1;
+    this.cardForm.get('cantidad')?.setValue(current + 1);
   }
 }

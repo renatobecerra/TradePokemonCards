@@ -9,11 +9,12 @@ export class TcgService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:5210/api/tcg'; // Puerto real detectado
 
-  getCartas(nombre?: string, rareza?: string): Observable<any[]> {
+  getCartas(nombre?: string, rareza?: string, set?: string): Observable<any[]> {
     let url = `${this.apiUrl}/cartas`;
     const params = [];
     if (nombre) params.push(`nombre=${nombre}`);
     if (rareza) params.push(`rareza=${rareza}`);
+    if (set) params.push(`set=${set}`);
     
     if (params.length > 0) {
       url += `?${params.join('&')}`;

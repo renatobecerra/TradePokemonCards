@@ -78,7 +78,8 @@ namespace Backend.Controllers
         public string? Edicion { get; set; }
         public string? ImgLink { get; set; }
         public string? IdTgc { get; set; }
-        public int? Precio { get; set; }
+        public decimal? Precio { get; set; }
+        public int? Cantidad { get; set; }
     }
 
     [ApiController]
@@ -137,10 +138,14 @@ namespace Backend.Controllers
                         (datos.IdTgc != null ? iu.IdItemNavigation.id_tgc == datos.IdTgc : iu.IdItemNavigation.Nombre == datos.Nombre && iu.IdItemNavigation.Edicion == datos.Edicion)
                     );
 
+                int cantidadAAgregar = datos.Cantidad ?? 1;
+
                 if (existe != null)
                 {
                     // Si ya existe, simplemente incrementamos la cantidad
-                    existe.Cantidad = (existe.Cantidad ?? 0) + 1;
+                    existe.Cantidad = (existe.Cantidad ?? 0) + cantidadAAgregar;
+                    // Actualizamos el precio por si ha cambiado
+                    existe.IdItemNavigation.precio = (int?)(datos.Precio);
                     _context.InventarioUsuarios.Update(existe);
                 }
                 else
@@ -153,7 +158,7 @@ namespace Backend.Controllers
                         Edicion = datos.Edicion,
                         ImgLink = datos.ImgLink,
                         id_tgc = datos.IdTgc,
-                        precio = datos.Precio
+                        precio = (int?)(datos.Precio)
                     };
                     
                     _context.Inventarios.Add(nuevoInventario);
@@ -165,7 +170,7 @@ namespace Backend.Controllers
                         IdUsuario = datos.IdUsuario,
                         IdItem = nuevoInventario.IdItem,
                         EstadoFisico = datos.Estado,
-                        Cantidad = 1,
+                        Cantidad = cantidadAAgregar,
                         FechaObtencion = DateTime.Now
                     };
 
@@ -194,11 +199,12 @@ namespace Backend.Controllers
 
                 if (iu == null) return NotFound(new { mensaje = "Ítem no encontrado." });
 
-                // Actualizamos el estado físico en el vínculo
+                // Actualizamos los datos
                 iu.EstadoFisico = datos.Estado;
+                iu.Cantidad = datos.Cantidad ?? iu.Cantidad;
                 
-                // Actualizamos el precio en el ítem base (asociado a este registro)
-                iu.IdItemNavigation.precio = datos.Precio;
+                // Actualizamos el precio en el ítem base
+                iu.IdItemNavigation.precio = (int?)(datos.Precio);
 
                 await _context.SaveChangesAsync();
                 return Ok(new { mensaje = "Carta actualizada con éxito." });

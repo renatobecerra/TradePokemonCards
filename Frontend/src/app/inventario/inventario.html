@@ -1,48 +1,48 @@
 <div class="inventario-page">
-  <nav class="inventario-nav">
-    <div class="nav-container">
-      <div class="nav-left">
-        <div class="logo" routerLink="/">
-          <span class="bracket">[</span>POKET<span class="bracket">]</span>.
-        </div>
-      </div>
-      <div class="nav-center">
-        <a routerLink="/explorar">EXPLORAR</a>
-        <a routerLink="/inventario" class="active">MI INVENTARIO</a>
-        <a routerLink="/mensajes">MENSAJES</a>
-      </div>
-      <div class="nav-right">
-        <button class="btn-add-card" (click)="abrirModal()">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          AGREGAR CARTA
-        </button>
-      </div>
-    </div>
-  </nav>
+  <comp-nav-bar></comp-nav-bar>
 
   <main class="inventario-content">
     <div class="header-section">
-      <h1 class="title">Tu Colección Personal</h1>
-      <p class="subtitle">Gestiona y publica tus cartas para intercambiar o vender.</p>
+      <div class="header-main-row">
+        <div class="header-left">
+          <h1 class="title">Tu Colección <span class="text-accent">Personal.</span></h1>
+          <p class="subtitle">Gestiona y publica tus cartas para intercambiar o vender.</p>
+        </div>
+        <div class="header-right">
+          <div class="inventory-search">
+            <input type="text" placeholder="Filtrar tu inventario..." [value]="busquedaInventario()" (input)="busquedaInventario.set($any($event.target).value)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <button class="btn-add-premium" (click)="abrirModal()">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            AGREGAR CARTA
+          </button>
+        </div>
+      </div>
     </div>
 
     @if (miInventario().length === 0) {
-      <div class="empty-state">
-        <div class="empty-icon">🎴</div>
-        <h2>Aún no tienes cartas</h2>
-        <p>Comienza agregando tu primera carta al inventario.</p>
-        <button class="btn-primary" (click)="abrirModal()">AGREGAR AHORA</button>
+      <div class="empty-state-premium">
+        <div class="empty-visual">
+          <div class="card-outline"></div>
+          <div class="card-outline delay-1"></div>
+          <div class="card-outline delay-2"></div>
+        </div>
+        <div class="empty-text">
+          <h2>BAÚL VACÍO<span class="dot">.</span></h2>
+          <p>Tu colección aún no tiene registros. Comienza a registrar tus cartas para entrar al mercado global.</p>
+        </div>
+        <button class="btn-add-now" (click)="abrirModal()">COMENZAR REGISTRO</button>
       </div>
     } @else {
       <div class="cards-grid">
-        @for (item of miInventario(); track item.idInventarioUser) {
-          <div class="item-card">
+        @for (item of inventarioFiltrado(); track item.idInventarioUser) {
+          <div class="item-card" [ngClass]="getRarityClass(item.rareza)">
             <div class="item-img-container">
-              <!-- CONTADOR DE CANTIDAD (Superior Izquierda) - Siempre visible y dinámico -->
-              <div class="quantity-badge">x{{ item.cantidad }}</div>
+              <div class="quantity-badge">x{{ item.cantidad || 1 }}</div>
               
               <div class="item-actions">
                 <button class="btn-edit-small" (click)="abrirEditar(item)" title="Editar">
@@ -53,20 +53,21 @@
                 </button>
               </div>
 
+              <div class="card-holo-effect"></div>
               @if (item.imgLink) {
-                <img [src]="item.imgLink" [alt]="item.nombre">
+                <img [src]="item.imgLink.endsWith('.jpg') || item.imgLink.endsWith('.png') ? item.imgLink : item.imgLink + '/high.jpg'" [alt]="item.nombre" class="card-main-img">
               } @else {
                 <div class="img-placeholder">Sin Imagen</div>
               }
             </div>
             <div class="item-details">
-              <h3>{{ item.nombre }}</h3>
+              <h3 class="card-name">{{ item.nombre }}</h3>
               <div class="item-badges">
                 <span class="badge-status">{{ item.estado }}</span>
                 <span class="badge-rarity">{{ item.rareza }}</span>
               </div>
               <div class="item-footer">
-                <p class="item-price">{{ item.precio | currency:'USD' }}</p>
+                <p class="item-price">{{ item.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
                 <p class="item-edition">{{ item.edicion }}</p>
               </div>
             </div>
@@ -78,39 +79,71 @@
 
   <!-- MODAL MULTI-PASO -->
   <div class="modal-overlay" [class.active]="mostrarModal()">
-    <div class="modal-card" [class.wide]="step() === 1">
-      <div class="modal-header">
-        <h2>{{ step() === 1 ? 'Seleccionar del Catálogo' : 'Configurar Carta' }}</h2>
-        <button class="btn-close" (click)="cerrarModal()">×</button>
+    <div class="modal-card wide">
+      <div class="modal-header-premium">
+        <div class="header-titles">
+          <span class="step-indicator">PASO {{ step() }} DE 2</span>
+          <h2 class="modal-title-main">{{ step() === 1 ? 'SELECCIONA UNA CARTA' : 'CONFIGURA TU REGISTRO' }}</h2>
+        </div>
+        <button class="btn-close-circle" (click)="cerrarModal()">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       
       <!-- PASO 1: BUSCADOR Y CATÁLOGO -->
       @if (step() === 1) {
-        <div class="catalog-step">
-          <div class="catalog-filters">
-            <div class="search-box">
-              <input type="text" placeholder="Buscar por nombre..." [value]="filtroNombre()" (input)="filtroNombre.set($any($event.target).value)" (keyup.enter)="buscarEnCatalogo()">
-              <button class="btn-search" (click)="buscarEnCatalogo()">🔍</button>
+        <div class="catalog-step-v2">
+          <div class="catalog-filters-premium">
+            <div class="search-input-group">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" placeholder="Buscar por nombre (ej: Charizard, Mewtwo...)" [(ngModel)]="filtroNombre" (input)="onSearchChange()">
             </div>
             
-            <select [value]="filtroRareza()" (change)="filtroRareza.set($any($event.target).value); buscarEnCatalogo()">
-              <option value="">Todas las Rarezas</option>
-              @for (r of rarities(); track r) {
-                <option [value]="r">{{ r }}</option>
-              }
-            </select>
+            <div class="filters-row">
+              <div class="custom-select-v2">
+                <select [(ngModel)]="filtroRareza" (change)="buscarEnCatalogo()">
+                  <option value="">TODAS LAS RAREZAS</option>
+                  @for (r of rarities(); track r) {
+                    <option [value]="r">{{ r | uppercase }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="custom-select-v2">
+                <select [(ngModel)]="filtroSet" (change)="buscarEnCatalogo()">
+                  <option value="">TODAS LAS EDICIONES</option>
+                  @for (s of sets(); track s.id) {
+                    <option [value]="s.id">{{ s.name | uppercase }}</option>
+                  }
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div class="catalog-results" [class.loading]="cargando()">
+          <div class="catalog-grid-premium" [class.loading]="cargando()">
             @if (cargando()) {
-              <div class="loader">Cargando catálogo...</div>
+              <div class="premium-loader">
+                <div class="loader-circle"></div>
+                <p>SINCRONIZANDO CON EL ARCHIVO TCG...</p>
+              </div>
             } @else {
               @for (card of catalogoTcg(); track card.id) {
-                <div class="catalog-item" (click)="seleccionarCard(card)">
-                  <img [src]="card.image + '/low.jpg'" [alt]="card.name">
-                  <div class="item-overlay">
-                    <span>{{ card.name }}</span>
-                    <small>{{ card.rarity }}</small>
+                <div class="catalog-card-v2" (click)="seleccionarCard(card)">
+                  <div class="card-image-box">
+                    <img [src]="card.image + '/low.jpg'" [alt]="card.name" loading="lazy">
+                    <div class="card-overlay-v2">
+                      <div class="overlay-content">
+                        <span class="view-details">SELECCIONAR</span>
+                        <div class="overlay-meta">
+                          <span>#{{ card.localId }}</span>
+                          <span>{{ card.rarity }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-info-v2">
+                    <h4 class="card-title-v2">{{ card.name }}</h4>
+                    <p class="card-subtitle-v2">{{ card.set?.name }}</p>
                   </div>
                 </div>
               }
@@ -121,51 +154,87 @@
 
       <!-- PASO 2: ESTADO Y PRECIO -->
       @if (step() === 2) {
-        <div class="config-step">
-          <div class="selected-card-preview">
-            <img [src]="cardSeleccionada()?.image + '/low.jpg'" alt="Preview">
-            <div class="preview-info">
-              <h3>{{ cardSeleccionada()?.name }}</h3>
-              <p>{{ cardSeleccionada()?.rarity }}</p>
+        <div class="config-step-v2">
+          <div class="config-container">
+            <!-- Columna Izquierda: Vista Previa -->
+            <div class="config-preview">
+              <div class="preview-card-wrapper">
+                <div class="preview-glow"></div>
+                <img [src]="cardSeleccionada()?.image + '/high.jpg'" 
+                     [alt]="cardSeleccionada()?.name" 
+                     class="preview-img" />
+              </div>
+              <div class="preview-info">
+                <span class="preview-set">{{ cardSeleccionada()?.set?.name }}</span>
+                <h3 class="preview-name">{{ cardSeleccionada()?.name }}</h3>
+                <div class="preview-badges">
+                  <span class="p-badge">{{ cardSeleccionada()?.rarity }}</span>
+                  <span class="p-badge">#{{ cardSeleccionada()?.localId }}</span>
+                </div>
+                
+                @if (getPrecioReferencial()) {
+                  <div class="market-reference">
+                    <label>VALOR DE MERCADO (REF)</label>
+                    <div class="market-price-box">
+                      <span class="m-val">{{ (getPrecioReferencial()! * 950) | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+                      <span class="m-unit">CLP</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Columna Derecha: Formulario -->
+            <div class="config-form-v2">
+              <form [formGroup]="cardForm" (ngSubmit)="onSubmit()">
+                <div class="form-section">
+                  <h4 class="section-title">DETALLES DE LA CARTA</h4>
+                  
+                  <div class="form-group-v2">
+                    <label>ESTADO DE CONSERVACIÓN</label>
+                    <div class="custom-select-v2">
+                      <select formControlName="estado">
+                        <option value="Nuevo">NUEVO (MINT)</option>
+                        <option value="Excelente">EXCELENTE (NEAR MINT)</option>
+                        <option value="Bueno">BUENO (GOOD)</option>
+                        <option value="Usado">USADO (PLAYED)</option>
+                        <option value="Dañado">DAÑADO (DAMAGED)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row-v2">
+                    <div class="form-group-v2">
+                      <label>CANTIDAD</label>
+                      <div class="quantity-picker-v2">
+                        <button type="button" (click)="decrementarCantidad()">-</button>
+                        <input type="number" formControlName="cantidad">
+                        <button type="button" (click)="incrementarCantidad()">+</button>
+                      </div>
+                    </div>
+
+                    <div class="form-group-v2">
+                      <label>PRECIO DE VENTA (CLP)</label>
+                      <div class="price-input-v2">
+                        <span class="currency-tag">$</span>
+                        <input type="number" formControlName="precio" placeholder="0">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="config-actions">
+                  <button type="button" class="btn-secondary-v2" (click)="volverAlCatalogo()">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    CAMBIAR CARTA
+                  </button>
+                  <button type="submit" class="btn-primary-v2" [disabled]="cargando() || cardForm.invalid">
+                    {{ cargando() ? 'REGISTRANDO...' : (modoEdicion() ? 'ACTUALIZAR' : 'REGISTRAR CARTA') }}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-
-          <form [formGroup]="cardForm" (ngSubmit)="onSubmit()">
-            <div class="form-body">
-              <div class="form-group">
-                <label>Estado de la Carta (Condición)</label>
-                <select formControlName="estado">
-                  <option value="Nuevo">Nuevo (Mint)</option>
-                  <option value="Excelente">Excelente (Near Mint)</option>
-                  <option value="Bueno">Bueno (Good)</option>
-                  <option value="Usado">Usado (Played)</option>
-                  <option value="Dañado">Dañado (Damaged)</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Precio de Venta / Intercambio</label>
-                <div class="price-input-wrapper">
-                  <span class="currency-symbol">$</span>
-                  <input type="number" formControlName="precio" [placeholder]="getPrecioReferencial() ? 'Ej: ' + getPrecioReferencial() : 'Ingresa un precio'">
-                </div>
-                <small class="ref-label">
-                  @if (getPrecioReferencial()) {
-                    Precio referencial sugerido: {{ getPrecioReferencial() | currency:'USD' }}
-                  } @else {
-                    Sin precio referencial existente
-                  }
-                </small>
-              </div>
-            </div>
-
-            <div class="modal-footer">
-              <button type="button" class="btn-cancel" (click)="volverAlCatalogo()">VOLVER</button>
-              <button type="submit" class="btn-save" [disabled]="cardForm.invalid || cargando()">
-                {{ cargando() ? 'GUARDANDO...' : 'CONFIRMAR Y AGREGAR' }}
-              </button>
-            </div>
-          </form>
         </div>
       }
     </div>

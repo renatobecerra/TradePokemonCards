@@ -15,21 +15,24 @@ namespace Backend.Controllers
         }
 
         [HttpGet("cartas")]
-        public async Task<IActionResult> ObtenerCartas([FromQuery] string? nombre, [FromQuery] string? rareza)
+        public async Task<IActionResult> ObtenerCartas([FromQuery] string? nombre, [FromQuery] string? rareza, [FromQuery] string? set)
         {
             try
             {
-                List<TcgCardDto>? cards;
+                List<TcgCardDto>? cards = null;
 
-                if (!string.IsNullOrEmpty(rareza))
+                if (!string.IsNullOrEmpty(set))
                 {
-                    // Si hay rareza, usamos el endpoint específico de TCGdex para esa rareza
+                    var setResponse = await _httpClient.GetFromJsonAsync<SetResponse>($"https://api.tcgdex.net/v2/es/sets/{set}");
+                    cards = setResponse?.Cards;
+                }
+                else if (!string.IsNullOrEmpty(rareza))
+                {
                     var rarityResponse = await _httpClient.GetFromJsonAsync<RarityResponse>($"https://api.tcgdex.net/v2/es/rarities/{rareza}");
                     cards = rarityResponse?.Cards;
                 }
                 else
                 {
-                    // Si no, cargamos el catálogo general
                     cards = await _httpClient.GetFromJsonAsync<List<TcgCardDto>>("https://api.tcgdex.net/v2/es/cards");
                 }
                 
@@ -65,6 +68,12 @@ namespace Backend.Controllers
         }
 
         private class RarityResponse
+        {
+            public string Name { get; set; } = null!;
+            public List<TcgCardDto> Cards { get; set; } = null!;
+        }
+
+        private class SetResponse
         {
             public string Name { get; set; } = null!;
             public List<TcgCardDto> Cards { get; set; } = null!;
