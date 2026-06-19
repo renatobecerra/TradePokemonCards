@@ -109,10 +109,15 @@
                 <div class="overlay-content">
                   <span class="rarity-tag" [style.background]="item.color">{{ item.rarity }}</span>
                   <div class="owner-info">
-                    <span class="label">Coleccionista</span>
-                    <span class="value">{{ item.owner }}</span>
+                    @if (item.esTopReal) {
+                      <span class="label">Deseada por</span>
+                      <span class="value">{{ item.count }} {{ item.count === 1 ? 'usuario' : 'usuarios' }}</span>
+                    } @else {
+                      <span class="label">Estado</span>
+                      <span class="value">Novedad</span>
+                    }
                   </div>
-                  <button class="btn-detail">Ver Detalles</button>
+                  <button class="btn-detail" [routerLink]="['/vendedores-carta', item.idTgc]">Ver Detalles</button>
                 </div>
               </div>
             </div>
@@ -142,7 +147,7 @@
             </div>
             <h3 class="market-title">¿Buscas algo más?</h3>
             <p class="market-desc">Explora el inventario completo con miles de cartas para ti.</p>
-            <button class="btn-marketplace-inner">
+            <button class="btn-marketplace-inner" routerLink="/explorar">
               IR AL MERCADO <span class="arrow">→</span>
             </button>
           </div>

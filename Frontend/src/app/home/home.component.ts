@@ -3,6 +3,7 @@ import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { TcgService } from '../services/tcg.service';
 import { Subscription } from 'rxjs';
 
 interface PokemonCard {
@@ -17,12 +18,15 @@ interface PokemonCard {
 }
 
 interface TopRegistro {
+  idItem: number;
   name: string;
   image: string;
-  owner: string;
   rarity: string;
-  value: string;
+  value: number | null;
   color: string;
+  idTgc: string;
+  count: number;
+  esTopReal: boolean;
 }
 
 interface FAQItem {
@@ -55,6 +59,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private authService = inject(AuthService);
   private router = inject(Router);
+  private tcgService = inject(TcgService);
   private authSub?: Subscription;
 
   public resenias = signal<ReviewItem[]>([
@@ -113,56 +118,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public isUSD = signal<boolean>(false);
   private exchangeRate = signal<number>(898.23);
 
-  public topRegistros = signal<TopRegistro[]>([
-    {
-      name: 'Lucario V',
-      image: 'Cartas Top Registros/LucarioV.png',
-      owner: 'Lexie H.',
-      rarity: 'Normal',
-      value: '$45.00',
-      color: '#2ecc71'
-    },
-    {
-      name: 'Mewtwo V',
-      image: 'Cartas Top Registros/MewtwoV.png',
-      owner: 'Nate J.',
-      rarity: 'holo',
-      value: '$120.00',
-      color: '#2ecc71'
-    },
-    {
-      name: 'Mew V',
-      image: 'Cartas Top Registros/MewV.png',
-      owner: 'Cassie H.',
-      rarity: 'Normal',
-      value: '$65.00',
-      color: '#2ecc71'
-    },
-    {
-      name: 'Moltres V',
-      image: 'Cartas Top Registros/MoltresV.png',
-      owner: 'Maddie P.',
-      rarity: 'Holo',
-      value: '$85.00',
-      color: '#2ecc71'
-    },
-    {
-      name: 'Ninetales V',
-      image: 'Cartas Top Registros/NinetalesV.png',
-      owner: 'Steve R.',
-      rarity: 'Holo',
-      value: '$55.00',
-      color: '#2ecc71'
-    },
-    {
-      name: 'Victini V',
-      image: 'Cartas Top Registros/VictiniV.png',
-      owner: 'Bruce B.',
-      rarity: 'Normal',
-      value: '$40.00',
-      color: '#2ecc71'
-    }
-  ]);
+  public topRegistros = signal<TopRegistro[]>([]);
 
   public cards = signal<PokemonCard[]>([
     {
@@ -245,6 +201,27 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
       })
       .catch(err => console.error('Error fetching exchange rate:', err));
+
+    // Cargar Top Registros desde el Backend
+    this.tcgService.getTopRegistros().subscribe({
+      next: (data) => {
+        const mapped = data.map(item => ({
+          idItem: item.idItem,
+          name: item.nombre,
+          image: item.imgLink ? (item.imgLink.endsWith('.jpg') || item.imgLink.endsWith('.png') ? item.imgLink : `${item.imgLink}/high.jpg`) : '',
+          rarity: item.rareza || 'Común',
+          value: item.precio,
+          color: this.getCardColor(item.rareza),
+          idTgc: item.idTgc,
+          count: item.count,
+          esTopReal: item.esTopReal
+        }));
+        this.topRegistros.set(mapped);
+      },
+      error: (err) => {
+        console.error('Error al cargar top registros:', err);
+      }
+    });
   }
 
   rotateCards() {
@@ -292,14 +269,29 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isUSD.set(!this.isUSD());
   }
 
-  getConvertedValue(usdValue: string): string {
-    const numericValue = parseFloat(usdValue.replace('$', ''));
+  getConvertedValue(clpValue: number | null): string {
+    if (clpValue == null) return 'N/A';
     if (this.isUSD()) {
-      return `${usdValue} USD`;
+      const usdValue = clpValue / this.exchangeRate();
+      return `$${usdValue.toFixed(2)} USD`;
     } else {
-      const clpValue = Math.round(numericValue * this.exchangeRate());
       return `$${clpValue.toLocaleString('es-CL')} CLP`;
     }
+  }
+
+  getCardColor(rarity: string | null): string {
+    if (!rarity) return '#2ecc71';
+    const r = rarity.toLowerCase();
+    if (r.includes('rare') || r.includes('holo') || r.includes('secret') || r.includes('promo')) {
+      return '#ff7675'; // Coral/Red for rare
+    }
+    if (r.includes('ultra') || r.includes('vmax') || r.includes('vstar') || r.includes('v')) {
+      return '#fdcb6e'; // Yellow/Gold for ultra
+    }
+    if (r.includes('special') || r.includes('rainbow') || r.includes('shiny')) {
+      return '#a29bfe'; // Purple for rainbow/special
+    }
+    return '#2ecc71'; // Green for normal/default
   }
 
   scrollresenias(direction: 'left' | 'right') {
