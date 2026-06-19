@@ -9,12 +9,13 @@ export class TcgService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:5210/api/tcg'; // Puerto real detectado
 
-  getCartas(nombre?: string, rareza?: string, set?: string): Observable<any[]> {
+  getCartas(nombre?: string, rareza?: string, set?: string, page = 1): Observable<any[]> {
     let url = `${this.apiUrl}/cartas`;
     const params = [];
     if (nombre) params.push(`nombre=${nombre}`);
     if (rareza) params.push(`rareza=${rareza}`);
     if (set) params.push(`set=${set}`);
+    if (page) params.push(`page=${page}`);
     
     if (params.length > 0) {
       url += `?${params.join('&')}`;
@@ -50,5 +51,25 @@ export class TcgService {
 
   eliminarCarta(idInventarioUser: number): Observable<any> {
     return this.http.delete<any>(`http://localhost:5210/api/inventario/eliminar/${idInventarioUser}`);
+  }
+
+  getVendedoresCarta(idTgc: string): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:5210/api/inventario/vendedores/${idTgc}`);
+  }
+
+  getPrecioPromedio(idTgc: string): Observable<{ promedio: number | null }> {
+    return this.http.get<{ promedio: number | null }>(`http://localhost:5210/api/inventario/precio-promedio/${idTgc}`);
+  }
+
+  getWishlist(idUsuario: number): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:5210/api/catalogo/guardados/${idUsuario}`);
+  }
+
+  agregarAWishlist(datos: any): Observable<any> {
+    return this.http.post<any>(`http://localhost:5210/api/catalogo/guardar-tgc`, datos);
+  }
+
+  eliminarDeWishlist(idUsuario: number, idItem: number): Observable<any> {
+    return this.http.delete<any>(`http://localhost:5210/api/catalogo/guardados/eliminar/${idUsuario}/${idItem}`);
   }
 }

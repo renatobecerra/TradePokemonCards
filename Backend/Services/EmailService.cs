@@ -16,27 +16,53 @@ namespace Backend.Services
             _config = config;
         }
 
+        private async Task AuthenticateAndSendEmailAsync(MimeMessage message, string senderEmail)
+        {
+            var googleSettings = _config.GetSection("GoogleSettings");
+            var password = googleSettings["Password"];
+
+            UserCredential? credentials = null;
+
+            if (string.IsNullOrEmpty(password))
+            {
+                var clientID = googleSettings["ClientId"];
+                var clientSecret = googleSettings["ClientSecret"];
+                var refreshToken = googleSettings["RefreshToken"];
+
+                if (string.IsNullOrEmpty(clientID) || string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(refreshToken))
+                {
+                    throw new Exception("Configuración de Gmail/Google incompleta. Provee un 'Password' (App Password de Gmail) o credenciales de OAuth2 en appsettings.");
+                }
+
+                var tokenResponse = new TokenResponse { RefreshToken = refreshToken };
+                var credentialsFlow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+                    ClientSecrets = new ClientSecrets { ClientId = clientID, ClientSecret = clientSecret }
+                });
+                credentials = new UserCredential(credentialsFlow, "user", tokenResponse);
+                await credentials.RefreshTokenAsync(CancellationToken.None);
+            }
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+            
+            if (credentials != null)
+            {
+                var oauth2 = new SaslMechanismOAuth2(senderEmail, credentials.Token.AccessToken);
+                await client.AuthenticateAsync(oauth2);
+            }
+            else
+            {
+                await client.AuthenticateAsync(senderEmail, password);
+            }
+
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+        }
+
         public async Task EnviarCodigoVerificacionAsync(string emailDestino, string nombreUsuario, string codigo)
         {
             var googleSettings = _config.GetSection("GoogleSettings");
-            
-            var clientID = googleSettings["ClientId"];
-            var clientSecret = googleSettings["ClientSecret"];
-            var refreshToken = googleSettings["RefreshToken"];
             var senderEmail = googleSettings["SenderEmail"] ?? throw new Exception("SenderEmail no configurado");
-
-            if (string.IsNullOrEmpty(clientID) || string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(refreshToken))
-            {
-                throw new Exception("Configuración de Google incompleta en appsettings.json");
-            }
-
-            var tokenResponse = new TokenResponse { RefreshToken = refreshToken };
-            var credentials = new UserCredential(new GoogleAuthorizationCodeFlow(
-                new GoogleAuthorizationCodeFlow.Initializer {
-                    ClientSecrets = new ClientSecrets { ClientId = clientID, ClientSecret = clientSecret }
-                }), "user", tokenResponse);
-
-            await credentials.RefreshTokenAsync(CancellationToken.None);
 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("Pokemon Market", senderEmail));
@@ -67,18 +93,12 @@ namespace Backend.Services
                     </div>"
             };
 
-            using var client = new SmtpClient();
             try 
             {
-                await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-                var oauth2 = new SaslMechanismOAuth2(senderEmail, credentials.Token.AccessToken);
-                await client.AuthenticateAsync(oauth2);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
+                await AuthenticateAndSendEmailAsync(message, senderEmail);
             }
             catch (Exception ex)
             {
-                // En un entorno real, usaríamos un Logger aquí
                 throw new Exception($"Error al enviar el correo: {ex.Message}");
             }
         }
@@ -86,28 +106,8 @@ namespace Backend.Services
         public async Task EnviarCodigoRecuperacionAsync(string emailDestino, string nombreUsuario, string codigo)
         {
             var googleSettings = _config.GetSection("GoogleSettings");
-            
-            var clientID = googleSettings["ClientId"];
-            var clientSecret = googleSettings["ClientSecret"];
-            var refreshToken = googleSettings["RefreshToken"];
             var senderEmail = googleSettings["SenderEmail"] ?? throw new Exception("SenderEmail no configurado");
 
-            if (string.IsNullOrEmpty(clientID) || string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(refreshToken))
-            {
-                throw new Exception("Configuración de Google incompleta en appsettings.json");
-            }
-
-            var tokenResponse = new Google.Apis.Auth.OAuth2.Responses.TokenResponse { RefreshToken = refreshToken };
-            var credentials = new Google.Apis.Auth.OAuth2.UserCredential(new Google.Apis.Auth.OAuth2.Flows.GoogleAuthorizationCodeFlow(
-                new Google.Apis.Auth.OAuth2.Flows.GoogleAuthorizationCodeFlow.Initializer {
-                    ClientSecrets = new Google.Apis.Auth.OAuth2.ClientSecrets { ClientId = clientID, ClientSecret = clientSecret }
-                }), "user", tokenResponse);
-
-            //Inicio prueba de cod
-            await credentials.RefreshTokenAsync(CancellationToken.None);
-
-
-            //FIn inicio de prueba 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("Pokemon Market", senderEmail));
             message.To.Add(new MailboxAddress(nombreUsuario, emailDestino));
@@ -137,14 +137,9 @@ namespace Backend.Services
                     </div>"
             };
 
-            using var client = new SmtpClient();
             try 
             {
-                await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-                var oauth2 = new SaslMechanismOAuth2(senderEmail, credentials.Token.AccessToken);
-                await client.AuthenticateAsync(oauth2);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
+                await AuthenticateAndSendEmailAsync(message, senderEmail);
             }
             catch (Exception ex)
             {

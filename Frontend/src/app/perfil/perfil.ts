@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
+import { TcgService } from '../services/tcg.service';
 import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from '../utils/password-policy';
 import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
 
@@ -15,6 +16,7 @@ import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
 })
 export class PerfilComponent implements OnInit {
   private authService = inject(AuthService);
+  private tcgService = inject(TcgService);
   private router = inject(Router);
 
   public isEditing = signal<boolean>(false);
@@ -41,6 +43,7 @@ export class PerfilComponent implements OnInit {
   public passwordMessage = signal<{text: string, type: 'success' | 'error'} | null>(null);
 
   public currentUser = signal<any>(null);
+  public cantidadCartas = signal<number>(0);
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -50,6 +53,20 @@ export class PerfilComponent implements OnInit {
       }
       this.currentUser.set(user);
       this.resetEditData(user);
+      this.cargarCantidadCartas(user.id);
+    });
+  }
+
+  cargarCantidadCartas(userId: number) {
+    this.tcgService.getInventario(userId).subscribe({
+      next: (items) => {
+        const total = items.reduce((sum, item) => sum + (item.cantidad || 1), 0);
+        this.cantidadCartas.set(total);
+      },
+      error: (err) => {
+        console.error('Error al cargar cantidad de cartas:', err);
+        this.cantidadCartas.set(0);
+      }
     });
   }
 

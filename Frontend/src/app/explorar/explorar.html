@@ -1,23 +1,106 @@
 <div class="explorar-page">
   <comp-nav-bar></comp-nav-bar>
 
-  <!-- Marketplace Content -->
   <main class="explorar-content">
-    <div class="tcg-container">
-      <h1 class="section-title">Cartas Destacadas (TCGdex)</h1>
-      <div class="tcg-grid">
+     <div class="tcg-container">
+      <div class="content-header-v2">
+        <h1 class="section-title">Mercado de Cartas <span class="text-accent">TCGdex.</span></h1>
+        <p class="section-subtitle">Explora las cartas oficiales y encuentra entrenadores con copias disponibles para trato.</p>
+      </div>
+
+      <!-- Barra de Búsqueda y Filtros Premium -->
+      <div class="search-filter-container">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" [(ngModel)]="searchNombre" (keyup.enter)="aplicarFiltros()" placeholder="Buscar por nombre de carta...">
+        </div>
+
+        <div class="filter-select-group">
+          <div class="select-wrapper">
+            <select [(ngModel)]="selectedRareza" (change)="aplicarFiltros()">
+              <option value="">Todas las Rarezas</option>
+              @for (rarity of rarities(); track rarity) {
+                <option [value]="rarity">{{ rarity }}</option>
+              }
+            </select>
+            <svg class="select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+
+          <div class="select-wrapper">
+            <select [(ngModel)]="selectedSet" (change)="aplicarFiltros()">
+              <option value="">Todas las Ediciones</option>
+              @for (set of sets(); track set.id) {
+                <option [value]="set.id">{{ set.name }}</option>
+              }
+            </select>
+            <svg class="select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+
+          <button class="btn-clear-filters" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div class="tcg-grid-premium">
         @for (card of cartasTcg(); track card.id) {
-          <div class="card-item">
-            <div class="card-image-wrapper">
-              <img [src]="card.image + '/low.jpg'" [alt]="card.name" class="card-img">
+          <div class="top-card-item-premium" [class.is-wishlisted]="isWishlisted(card.id)">
+            <div class="card-visual-wrapper-premium">
+              <div class="card-glow-dynamic-premium"></div>
+              <button class="btn-wishlist" [class.active]="isWishlisted(card.id)" (click)="toggleDeseados(card, $event)" title="Añadir a Deseados">
+                <svg viewBox="0 0 24 24" width="18" height="18" [attr.fill]="isWishlisted(card.id) ? '#2ecc71' : 'none'" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
+              <img [src]="card.image + '/low.jpg'" [alt]="card.name" class="top-card-img-premium" loading="lazy">
+              
+              <div class="card-overlay-premium">
+                <div class="overlay-content-premium">
+                  <span class="rarity-tag-premium">{{ getRareza(card) }}</span>
+                  <div class="characteristics-info-premium">
+                    <span class="characteristic-label">Edición / Set</span>
+                    <span class="characteristic-value">{{ getEdicion(card) }}</span>
+                  </div>
+                  <button class="btn-detail-premium" [routerLink]="['/vendedores-carta', card.id]">Ver Vendedores</button>
+                </div>
+              </div>
             </div>
-            <div class="card-info">
-              <h3 class="card-name">{{ card.name }}</h3>
-              <p class="card-rarity">{{ card.rarity || 'Común' }}</p>
+            
+            <div class="card-info-premium">
+              <h3 class="card-name-premium">{{ card.name }}</h3>
+              <div class="price-tag-premium">
+                <div class="price-box-premium">
+                  <span class="price-label-premium">Valor Ref. (Mejor Estado)</span>
+                  <span class="price-value-premium">{{ getPrecioReferencial(card) }}</span>
+                </div>
+                <div class="status-indicator-premium">
+                  <div class="status-dot-premium"></div>
+                  <span class="status-text-premium">MERCADO</span>
+                </div>
+              </div>
             </div>
           </div>
         }
       </div>
+
+      <!-- Botón Ver Más -->
+      <div class="load-more-container">
+        <button class="btn-load-more" (click)="verMas()">
+          <span>VER MÁS CARTAS</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
     </div>
   </main>
+
+  <!-- Toast Notification Overlay -->
+  @if (toastMessage()) {
+    <div class="toast-notification" [class.show]="toastMessage() !== null">
+      <span class="toast-text">{{ toastMessage() }}</span>
+    </div>
+  }
 </div>

@@ -77,7 +77,6 @@
     }
   </main>
 
-  <!-- MODAL MULTI-PASO -->
   <div class="modal-overlay" [class.active]="mostrarModal()">
     <div class="modal-card wide">
       <div class="modal-header-premium">
@@ -90,7 +89,6 @@
         </button>
       </div>
       
-      <!-- PASO 1: BUSCADOR Y CATÁLOGO -->
       @if (step() === 1) {
         <div class="catalog-step-v2">
           <div class="catalog-filters-premium">
@@ -152,11 +150,9 @@
         </div>
       }
 
-      <!-- PASO 2: ESTADO Y PRECIO -->
       @if (step() === 2) {
         <div class="config-step-v2">
           <div class="config-container">
-            <!-- Columna Izquierda: Vista Previa -->
             <div class="config-preview">
               <div class="preview-card-wrapper">
                 <div class="preview-glow"></div>
@@ -174,17 +170,15 @@
                 
                 @if (getPrecioReferencial()) {
                   <div class="market-reference">
-                    <label>VALOR DE MERCADO (REF)</label>
+                    <label>VALOR REF. - ESTADO NUEVO</label>
                     <div class="market-price-box">
-                      <span class="m-val">{{ (getPrecioReferencial()! * 950) | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
-                      <span class="m-unit">CLP</span>
+                      <span class="m-val">{{ getPrecioReferencial() | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
                     </div>
                   </div>
                 }
               </div>
             </div>
 
-            <!-- Columna Derecha: Formulario -->
             <div class="config-form-v2">
               <form [formGroup]="cardForm" (ngSubmit)="onSubmit()">
                 <div class="form-section">
@@ -194,11 +188,11 @@
                     <label>ESTADO DE CONSERVACIÓN</label>
                     <div class="custom-select-v2">
                       <select formControlName="estado">
-                        <option value="Nuevo">NUEVO (MINT)</option>
-                        <option value="Excelente">EXCELENTE (NEAR MINT)</option>
-                        <option value="Bueno">BUENO (GOOD)</option>
-                        <option value="Usado">USADO (PLAYED)</option>
-                        <option value="Dañado">DAÑADO (DAMAGED)</option>
+                        <option value="Nuevo">NUEVO</option>
+                        <option value="Excelente">EXCELENTE</option>
+                        <option value="Bueno">BUENO</option>
+                        <option value="Usado">USADO</option>
+                        <option value="Dañado">DAÑADO</option>
                       </select>
                     </div>
                   </div>
@@ -207,9 +201,7 @@
                     <div class="form-group-v2">
                       <label>CANTIDAD</label>
                       <div class="quantity-picker-v2">
-                        <button type="button" (click)="decrementarCantidad()">-</button>
                         <input type="number" formControlName="cantidad">
-                        <button type="button" (click)="incrementarCantidad()">+</button>
                       </div>
                     </div>
 

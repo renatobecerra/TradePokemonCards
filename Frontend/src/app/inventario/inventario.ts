@@ -36,6 +36,7 @@ export class InventarioComponent implements OnInit, OnDestroy {
   public rarities = signal<string[]>([]);
   public sets = signal<any[]>([]);
   public cardSeleccionada = signal<any>(null);
+  public precioReferencial = signal<number | null>(null);
 
   // Filtros Catálogo
   public filtroNombre = signal<string>('');
@@ -139,9 +140,32 @@ export class InventarioComponent implements OnInit, OnDestroy {
     this.cardSeleccionada.set({
       name: item.nombre,
       rarity: item.rareza,
-      image: item.imgLink.replace('/high.jpg', ''),
-      set: { name: item.edicion }
+      image: item.imgLink ? item.imgLink.replace('/high.jpg', '') : '',
+      set: { name: item.edicion },
+      id: item.idTgc
     });
+
+    this.precioReferencial.set(null);
+    if (item.idTgc) {
+      this.tcgService.getDetallesCarta(item.idTgc).subscribe({
+        next: (detalles) => {
+          const precioApi = detalles.pricing?.tcgplayer?.market || detalles.pricing?.cardmarket?.avg;
+          if (precioApi) {
+            this.precioReferencial.set(Math.round(precioApi * 950));
+          } else {
+            this.tcgService.getPrecioPromedio(item.idTgc).subscribe({
+              next: (res) => this.precioReferencial.set(res.promedio)
+            });
+          }
+        },
+        error: () => {
+          this.tcgService.getPrecioPromedio(item.idTgc).subscribe({
+            next: (res) => this.precioReferencial.set(res.promedio)
+          });
+        }
+      });
+    }
+
     this.cardForm.patchValue({
       estado: item.estado,
       precio: item.precio,
@@ -161,19 +185,43 @@ export class InventarioComponent implements OnInit, OnDestroy {
 
   seleccionarCard(card: any) {
     this.cargando.set(true);
+    this.precioReferencial.set(null);
     this.tcgService.getDetallesCarta(card.id).subscribe({
       next: (detalles) => {
         this.cardSeleccionada.set(detalles);
         const precioApi = detalles.pricing?.tcgplayer?.market || detalles.pricing?.cardmarket?.avg;
-        // Conversión aproximada a CLP (1 USD = 950 CLP) y redondeo
-        const precioCLP = precioApi ? Math.round(precioApi * 950) : null;
         
-        this.cardForm.patchValue({
-          precio: precioCLP,
-          cantidad: 1
-        });
-        this.step.set(2);
-        this.cargando.set(false);
+        if (precioApi) {
+          const precioCLP = Math.round(precioApi * 950);
+          this.precioReferencial.set(precioCLP);
+          this.cardForm.patchValue({
+            precio: precioCLP,
+            cantidad: 1
+          });
+          this.step.set(2);
+          this.cargando.set(false);
+        } else {
+          // Si no hay precio oficial en TCGdex, consultar promedio del inventario local
+          this.tcgService.getPrecioPromedio(card.id).subscribe({
+            next: (res) => {
+              this.precioReferencial.set(res.promedio);
+              this.cardForm.patchValue({
+                precio: res.promedio,
+                cantidad: 1
+              });
+              this.step.set(2);
+              this.cargando.set(false);
+            },
+            error: () => {
+              this.cardForm.patchValue({
+                precio: null,
+                cantidad: 1
+              });
+              this.step.set(2);
+              this.cargando.set(false);
+            }
+          });
+        }
       },
       error: (err) => {
         console.error('Error al obtener detalles', err);
@@ -235,8 +283,7 @@ export class InventarioComponent implements OnInit, OnDestroy {
   }
 
   getPrecioReferencial(): number | null {
-    const card = this.cardSeleccionada();
-    return card?.pricing?.tcgplayer?.market || card?.pricing?.cardmarket?.avg || null;
+    return this.precioReferencial();
   }
 
   getRarityClass(rarity: string): string {

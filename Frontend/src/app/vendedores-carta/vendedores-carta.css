@@ -1,0 +1,553 @@
+.vendedores-page {
+    min-height: 100vh;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.vendedores-content {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem 2rem;
+}
+
+/* Navegación Atrás */
+.back-nav {
+    margin-bottom: 2.5rem;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    transition: all 0.3s ease;
+}
+
+.btn-back svg {
+    transition: transform 0.3s ease;
+}
+
+.btn-back:hover {
+    color: #2ecc71;
+}
+
+.btn-back:hover svg {
+    transform: translateX(-4px);
+}
+
+/* Layout Container */
+.layout-container {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 3.5rem;
+    align-items: start;
+}
+
+/* SIDEBAR: PANEL DETALLES DE CARTA */
+.card-details-panel {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 2.2rem;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(15px);
+}
+
+.panel-glow {
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 200px;
+    height: 200px;
+    background: #2ecc71;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.card-image-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.preview-img {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6));
+    transition: transform 0.5s ease;
+}
+
+.card-details-panel:hover .preview-img {
+    transform: scale(1.05) translateY(-5px);
+}
+
+.card-meta .set-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: #2ecc71;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    line-height: 1.1;
+    margin: 0.5rem 0 1.2rem 0;
+    letter-spacing: 0.02em;
+}
+
+.meta-badges {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.meta-badges .badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.meta-badges .badge.rarity {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.meta-badges .badge.local-id {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reference-pricing label {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.reference-pricing .price-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.reference-pricing .price-box .value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #2ecc71;
+}
+
+/* SECCIÓN PRINCIPAL: LISTADO DE VENDEDORES */
+.sellers-list-panel {
+    min-height: 500px;
+}
+
+.sellers-list-panel .section-header {
+    margin-bottom: 3rem;
+}
+
+.sellers-list-panel .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.03em;
+}
+
+.sellers-list-panel .text-accent {
+    color: #2ecc71;
+}
+
+.sellers-list-panel .subtitle {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 1.1rem;
+}
+
+/* Spinner Loaders */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 0;
+    color: rgba(255, 255, 255, 0.5);
+    gap: 1.5rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(46, 204, 113, 0.1);
+    border-top: 3px solid #2ecc71;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.empty-state-sellers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 5rem 3rem;
+}
+
+.empty-icon-box {
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.empty-state-sellers h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-sellers p {
+    color: rgba(255, 255, 255, 0.4);
+    max-width: 480px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+.btn-add-own {
+    background: #2ecc71;
+    border: none;
+    color: #000;
+    padding: 0.8rem 2.2rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-add-own:hover {
+    background: #fff;
+    transform: translateY(-3px);
+}
+
+/* Sellers Grid */
+.sellers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+}
+
+.seller-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 1.8rem 2rem;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.seller-card:hover {
+    border-color: rgba(46, 204, 113, 0.25);
+    background: rgba(46, 204, 113, 0.015);
+    transform: translateX(5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.seller-card-glow {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 60px;
+    height: 120px;
+    background: #2ecc71;
+    filter: blur(50px);
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.seller-card:hover .seller-card-glow {
+    opacity: 0.08;
+}
+
+/* Profile section */
+.seller-profile-section {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 52px;
+    height: 52px;
+}
+
+.seller-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatar-placeholder-seller {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+}
+
+.status-indicator-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid #000;
+}
+
+.seller-info .seller-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.presence-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.rating-stars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.rating-stars .star-icon {
+    color: #f1c40f;
+    font-size: 0.85rem;
+}
+
+.rating-stars .rating-val {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* Card details section */
+.card-details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0 2rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-row .detail-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
+}
+
+.detail-row .detail-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.detail-row .detail-value.badge-state {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.badge-state.state-nuevo {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+}
+
+.badge-state.state-excelente {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+}
+
+.badge-state.state-bueno {
+    background: rgba(241, 196, 18, 0.1);
+    color: #f1c40f;
+}
+
+.badge-state.state-usado {
+    background: rgba(230, 126, 34, 0.1);
+    color: #e67e22;
+}
+
+.badge-state.state-dañado {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+/* Pricing / Contact Section */
+.pricing-contact-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.price-box-seller {
+    display: flex;
+    flex-direction: column;
+}
+
+.price-box-seller .price-label {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.price-box-seller .price-value-seller {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #2ecc71;
+}
+
+.btn-contact {
+    background: #2ecc71;
+    border: none;
+    color: #000;
+    padding: 0.75rem 1.6rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-contact:hover {
+    background: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
+}
+
+.btn-contact .btn-icon {
+    margin-bottom: -2px;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    .layout-container {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+    
+    .card-details-panel {
+        max-width: 480px;
+        margin: 0 auto;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .vendedores-content {
+        padding: 2rem 1rem;
+    }
+    
+    .sellers-list-panel .title {
+        font-size: 2.6rem;
+    }
+    
+    .seller-card {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .card-details-section {
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 1.2rem 0;
+    }
+    
+    .pricing-contact-section {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}

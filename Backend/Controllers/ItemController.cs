@@ -61,12 +61,130 @@ namespace Backend.Controllers
                 return StatusCode(500, new { mensaje = $"Error al guardar: {ex.Message}" });
             }
         }
+
+        // GET: api/catalogo/guardados/{idUsuario}
+        [HttpGet("guardados/{idUsuario}")]
+        public async Task<IActionResult> ObtenerGuardados(int idUsuario)
+        {
+            try
+            {
+                var guardados = await _context.Guardados
+                    .Where(g => g.IdUsuario == idUsuario)
+                    .Include(g => g.IdItemNavigation)
+                    .Select(g => new {
+                        IdLista = g.IdLista,
+                        IdItem = g.IdItem,
+                        Nombre = g.IdItemNavigation.Nombre,
+                        Rareza = g.IdItemNavigation.Rareza,
+                        Edicion = g.IdItemNavigation.Edicion,
+                        ImgLink = g.IdItemNavigation.ImgLink,
+                        IdTgc = g.IdItemNavigation.id_tgc,
+                        Precio = g.IdItemNavigation.precio,
+                        FechaGuardado = g.FechaGuardado
+                    })
+                    .ToListAsync();
+                return Ok(guardados);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al obtener guardados: {ex.Message}" });
+            }
+        }
+
+        // DELETE: api/catalogo/guardados/eliminar/{idUsuario}/{idItem}
+        [HttpDelete("guardados/eliminar/{idUsuario}/{idItem}")]
+        public async Task<IActionResult> EliminarGuardado(int idUsuario, int idItem)
+        {
+            try
+            {
+                var guardado = await _context.Guardados
+                    .FirstOrDefaultAsync(g => g.IdUsuario == idUsuario && g.IdItem == idItem);
+
+                if (guardado == null)
+                {
+                    return NotFound(new { mensaje = "Ítem guardado no encontrado." });
+                }
+
+                _context.Guardados.Remove(guardado);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = "Ítem removido de tus guardados con éxito." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al eliminar de guardados: {ex.Message}" });
+            }
+        }
+
+        // POST: api/catalogo/guardar-tgc
+        [HttpPost("guardar-tgc")]
+        public async Task<IActionResult> GuardarTgcItem([FromBody] GuardarTgcDto datos)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var item = await _context.Inventarios
+                    .FirstOrDefaultAsync(i => i.id_tgc == datos.IdTgc);
+
+                if (item == null)
+                {
+                    item = new Inventario
+                    {
+                        Nombre = datos.Nombre,
+                        Rareza = datos.Rareza,
+                        Edicion = datos.Edicion,
+                        ImgLink = datos.ImgLink,
+                        id_tgc = datos.IdTgc,
+                        precio = datos.Precio
+                    };
+                    _context.Inventarios.Add(item);
+                    await _context.SaveChangesAsync();
+                }
+
+                var yaGuardado = await _context.Guardados
+                    .AnyAsync(g => g.IdUsuario == datos.IdUsuario && g.IdItem == item.IdItem);
+
+                if (yaGuardado)
+                {
+                    return BadRequest(new { mensaje = "Esta carta ya está en tus deseados." });
+                }
+
+                var nuevoGuardado = new Guardado
+                {
+                    IdUsuario = datos.IdUsuario,
+                    IdItem = item.IdItem,
+                    FechaGuardado = DateTime.Now
+                };
+
+                _context.Guardados.Add(nuevoGuardado);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new { mensaje = "Carta agregada a tus deseados con éxito.", idItem = item.IdItem });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { mensaje = $"Error al guardar en deseados: {ex.Message}" });
+            }
+        }
     }
 
     public class GuardarItemDto
     {
         public int IdUsuario { get; set; }
         public int IdInventario { get; set; }
+    }
+
+    public class GuardarTgcDto
+    {
+        public int IdUsuario { get; set; }
+        public string IdTgc { get; set; } = null!;
+        public string Nombre { get; set; } = null!;
+        public string? Rareza { get; set; }
+        public string? Edicion { get; set; }
+        public string? ImgLink { get; set; }
+        public int? Precio { get; set; }
     }
 
     public class CrearItemDto
@@ -91,6 +209,67 @@ namespace Backend.Controllers
         public InventarioController(PokemonMarketContext context)
         {
             _context = context;
+        }
+
+        [HttpGet("vendedores/{idTgc}")]
+        public async Task<IActionResult> ObtenerVendedores(string idTgc)
+        {
+            try
+            {
+                var vendedores = await _context.InventarioUsuarios
+                    .Include(i => i.IdUsuarioNavigation)
+                    .Include(i => i.IdItemNavigation)
+                    .Where(i => i.IdItemNavigation.id_tgc == idTgc)
+                    .Select(i => new {
+                        IdInventarioUser = i.IdInventarioUser,
+                        IdUsuario = i.IdUsuario,
+                        Nombre = i.IdUsuarioNavigation.Nombre,
+                        Apellido = i.IdUsuarioNavigation.Apellido,
+                        Correo = i.IdUsuarioNavigation.Correo,
+                        Telefono = i.IdUsuarioNavigation.Telefono,
+                        Foto = i.IdUsuarioNavigation.ImgPerfil,
+                        Calificacion = i.IdUsuarioNavigation.Calificacion,
+                        EstadoPresencia = i.IdUsuarioNavigation.EstadoPresencia,
+                        Estado = i.EstadoFisico,
+                        Cantidad = i.Cantidad,
+                        Precio = i.IdItemNavigation.precio,
+                        NombreCarta = i.IdItemNavigation.Nombre,
+                        RarezaCarta = i.IdItemNavigation.Rareza,
+                        EdicionCarta = i.IdItemNavigation.Edicion,
+                        ImgLinkCarta = i.IdItemNavigation.ImgLink
+                    })
+                    .ToListAsync();
+                return Ok(vendedores);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al obtener vendedores: {ex.Message}" });
+            }
+        }
+
+        [HttpGet("precio-promedio/{idTgc}")]
+        public async Task<IActionResult> ObtenerPrecioPromedio(string idTgc)
+        {
+            try
+            {
+                var precios = await _context.InventarioUsuarios
+                    .Include(i => i.IdItemNavigation)
+                    .Where(i => i.IdItemNavigation.id_tgc == idTgc && i.IdItemNavigation.precio != null && i.IdItemNavigation.precio > 0)
+                    .Select(i => i.IdItemNavigation.precio.Value)
+                    .ToListAsync();
+
+                if (precios.Count == 0)
+                {
+                    return Ok(new { promedio = (int?)null });
+                }
+
+                double promedio = precios.Average();
+                return Ok(new { promedio = (int)Math.Round(promedio) });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al calcular promedio: {ex.Message}" });
+            }
         }
 
         [HttpGet("{idUsuario}")]
@@ -223,7 +402,15 @@ namespace Backend.Controllers
                 var iu = await _context.InventarioUsuarios.FindAsync(idInventarioUser);
                 if (iu == null) return NotFound(new { mensaje = "Ítem no encontrado." });
 
-                _context.InventarioUsuarios.Remove(iu);
+                if (iu.Cantidad > 1)
+                {
+                    iu.Cantidad--;
+                    _context.InventarioUsuarios.Update(iu);
+                }
+                else
+                {
+                    _context.InventarioUsuarios.Remove(iu);
+                }
                 await _context.SaveChangesAsync();
 
                 return Ok(new { mensaje = "Carta eliminada de tu inventario." });
