@@ -38,6 +38,7 @@ export class VendedoresCartaComponent implements OnInit {
     // 1. Cargar detalles oficiales de la carta
     this.tcgService.getDetallesCarta(id).subscribe({
       next: (details) => {
+        console.log('Detalles de la carta cargados:', details);
         this.cardDetails.set(details);
       },
       error: (err) => {
@@ -87,5 +88,15 @@ export class VendedoresCartaComponent implements OnInit {
   getStarsArray(rating: number): number[] {
     const r = Math.round(rating || 5);
     return Array(r).fill(0);
+  }
+
+  getPrecioReferencial(): string {
+    const card = this.cardDetails();
+    if (!card) return 'N/A';
+    const apiPrice = card.pricing?.tcgplayer?.market || card.pricing?.cardmarket?.avg || null;
+    if (apiPrice) {
+      return `$${Math.round(apiPrice * 950).toLocaleString('es-CL')} CLP`;
+    }
+    return 'N/A';
   }
 }

@@ -33,7 +33,17 @@
           <div class="reference-pricing">
             <label>VALOR REF. MEJOR ESTADO (TCGplayer)</label>
             <div class="price-box">
-              <span class="value">{{ cardDetails()?.pricing?.tcgplayer?.market ? '$' + (cardDetails()?.pricing?.tcgplayer?.market * 950 | number:'1.0-0':'es-CL') + ' CLP' : 'N/A' }}</span>
+              <span class="value">{{ getPrecioReferencial() }}</span>
+            </div>
+            <div class="price-warning-box">
+              <svg viewBox="0 0 24 24" class="warning-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span class="warning-text">
+                Este valor es referencial, basado en el promedio de el resto de ventas del mercado.
+              </span>
             </div>
           </div>
         </div>

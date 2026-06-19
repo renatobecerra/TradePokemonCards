@@ -162,6 +162,29 @@
     color: #2ecc71;
 }
 
+.reference-pricing .price-warning-box {
+    margin-top: 0.8rem;
+    background: rgba(241, 196, 18, 0.05);
+    border: 1px solid rgba(241, 196, 18, 0.15);
+    padding: 10px 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.reference-pricing .price-warning-box .warning-icon {
+    color: #f1c40f;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.reference-pricing .price-warning-box .warning-text {
+    font-size: 0.7rem;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.7);
+}
+
 /* SECCIÓN PRINCIPAL: LISTADO DE VENDEDORES */
 .sellers-list-panel {
     min-height: 500px;

@@ -95,14 +95,12 @@ namespace Backend.Controllers
 
                 foreach (var card in list)
                 {
-                    if (card.Pricing?.Tcgplayer?.Market == null && card.Pricing?.Cardmarket?.Avg == null)
+                    if (averages.TryGetValue(card.Id, out var avgPrice))
                     {
-                        if (averages.TryGetValue(card.Id, out var avgPrice))
-                        {
-                            if (card.Pricing == null) card.Pricing = new CardPricing();
-                            if (card.Pricing.Tcgplayer == null) card.Pricing.Tcgplayer = new MarketPricing();
-                            card.Pricing.Tcgplayer.Market = avgPrice / 950.0;
-                        }
+                        if (card.Pricing == null) card.Pricing = new CardPricing();
+                        if (card.Pricing.Tcgplayer == null) card.Pricing.Tcgplayer = new MarketPricing();
+                        card.Pricing.Tcgplayer.Market = avgPrice / 950.0;
+                        if (card.Pricing.Cardmarket != null) card.Pricing.Cardmarket.Avg = null;
                     }
                 }
 
@@ -133,22 +131,20 @@ namespace Backend.Controllers
 
                 if (card == null) return NotFound();
 
-                // Si no tiene precio referencial de TCGdex, buscar promedio en base de datos
-                if (card.Pricing?.Tcgplayer?.Market == null && card.Pricing?.Cardmarket?.Avg == null)
-                {
-                    var precios = await _context.InventarioUsuarios
-                        .Include(i => i.IdItemNavigation)
-                        .Where(i => i.IdItemNavigation.id_tgc == id && i.IdItemNavigation.precio != null && i.IdItemNavigation.precio > 0)
-                        .Select(i => i.IdItemNavigation.precio.Value)
-                        .ToListAsync();
+                // Buscar promedio en base de datos (inventario local) primero
+                var precios = await _context.InventarioUsuarios
+                    .Include(i => i.IdItemNavigation)
+                    .Where(i => i.IdItemNavigation.id_tgc == id && i.IdItemNavigation.precio != null && i.IdItemNavigation.precio > 0)
+                    .Select(i => i.IdItemNavigation.precio.Value)
+                    .ToListAsync();
 
-                    if (precios.Count > 0)
-                    {
-                        double avgPrice = precios.Average();
-                        if (card.Pricing == null) card.Pricing = new CardPricing();
-                        if (card.Pricing.Tcgplayer == null) card.Pricing.Tcgplayer = new MarketPricing();
-                        card.Pricing.Tcgplayer.Market = avgPrice / 950.0;
-                    }
+                if (precios.Count > 0)
+                {
+                    double avgPrice = precios.Average();
+                    if (card.Pricing == null) card.Pricing = new CardPricing();
+                    if (card.Pricing.Tcgplayer == null) card.Pricing.Tcgplayer = new MarketPricing();
+                    card.Pricing.Tcgplayer.Market = avgPrice / 950.0;
+                    if (card.Pricing.Cardmarket != null) card.Pricing.Cardmarket.Avg = null;
                 }
 
                 return Ok(card);
