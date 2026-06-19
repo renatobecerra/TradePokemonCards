@@ -168,6 +168,73 @@ namespace Backend.Controllers
                 return StatusCode(500, new { mensaje = $"Error al guardar en deseados: {ex.Message}" });
             }
         }
+
+        // GET: api/catalogo/top
+        [HttpGet("top")]
+        public async Task<IActionResult> ObtenerTopRegistros()
+        {
+            try
+            {
+                // Agrupamos la tabla Guardados por IdItem para contar cuántos usuarios guardaron cada carta
+                var topItems = await _context.Guardados
+                    .GroupBy(g => new
+                    {
+                        g.IdItem,
+                        g.IdItemNavigation.Nombre,
+                        g.IdItemNavigation.Rareza,
+                        g.IdItemNavigation.Edicion,
+                        g.IdItemNavigation.ImgLink,
+                        Precio = g.IdItemNavigation.precio,
+                        IdTgc = g.IdItemNavigation.id_tgc
+                    })
+                    .Select(g => new
+                    {
+                        IdItem = g.Key.IdItem,
+                        Nombre = g.Key.Nombre,
+                        Rareza = g.Key.Rareza,
+                        Edicion = g.Key.Edicion,
+                        ImgLink = g.Key.ImgLink,
+                        Precio = g.Key.Precio,
+                        IdTgc = g.Key.IdTgc,
+                        Count = g.Count(),
+                        EsTopReal = true
+                    })
+                    .OrderByDescending(x => x.Count)
+                    .Take(6)
+                    .ToListAsync();
+
+                if (topItems.Count > 0)
+                {
+                    return Ok(topItems);
+                }
+                else
+                {
+                    // Fallback: Si no hay guardados, obtener las últimas cartas registradas en el catálogo (Inventario)
+                    var recentItems = await _context.Inventarios
+                        .OrderByDescending(i => i.IdItem)
+                        .Take(6)
+                        .Select(i => new
+                        {
+                            IdItem = i.IdItem,
+                            Nombre = i.Nombre,
+                            Rareza = i.Rareza,
+                            Edicion = i.Edicion,
+                            ImgLink = i.ImgLink,
+                            Precio = i.precio,
+                            IdTgc = i.id_tgc,
+                            Count = 0,
+                            EsTopReal = false
+                        })
+                        .ToListAsync();
+
+                    return Ok(recentItems);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al obtener el top de registros: {ex.Message}" });
+            }
+        }
     }
 
     public class GuardarItemDto
