@@ -1,0 +1,77 @@
+name: "CI — Dotnet TRADEPOKEMONCARDS"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "Backend/**" # Se activa solo cuando hay cambios en el Backend
+      - ".github/workflows/dotnet-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Backend/**"
+      - ".github/workflows/dotnet-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dotnet-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: "Build & Test .NET"
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      PROJECT_DIR: Backend # Apuntamos a tu carpeta de Backend
+    steps:
+      - name: "Checkout del código fuente"
+        uses: actions/checkout@v4
+
+      - name: "Configurar .NET SDK 8.0"
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: "Restaurar dependencias NuGet"
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          echo "Restaurando paquetes NuGet para toda la solución..."
+          dotnet restore
+
+      - name: "Build — Compilar proyecto en modo Release"
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          echo "Compilando la solución..."
+          dotnet build \
+            --no-restore \
+            --configuration Release \
+
+      - name: "Test — Ejecutar pruebas unitarias"
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          dotnet test \
+            --no-build \
+            --configuration Release \
+            --verbosity normal \
+            --logger "trx;LogFileName=test-results.trx" \
+            --collect:"XPlat Code Coverage"
+
+      - name: "Subir resultados de tests y cobertura"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-test-results
+          path: |
+            ${{ env.PROJECT_DIR }}/**/TestResults/
+          retention-days: 14
+    
+      - name: "Seguridad — Verificar vulnerabilidades en dependencias"
+        working-directory: ${{ env.PROJECT_DIR }}
+        continue-on-error: true
+        run: |
+          echo "Verificando vulnerabilidades en paquetes NuGet de la solución..."
+          dotnet list package --vulnerable --include-transitive 2>&1 || true

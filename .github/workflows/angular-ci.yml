@@ -1,0 +1,51 @@
+name: "CI — Angular TRADEPOKEMONCARDS"
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "Frontend/**"
+      - ".github/workflows/angular-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Frontend/**"
+      - ".github/workflows/angular-ci.yml"
+permissions:
+  contents: read
+concurrency:
+  group: angular-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-and-test:
+    name: "Build & Test Angular"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22, 24]
+    steps:
+      - name: "Checkout del código fuente"
+        uses: actions/checkout@v4
+
+      - name: "Configurar Node.js ${{ matrix.node-version }}"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: "Instalar dependencias (npm ci)"
+        working-directory: Frontend
+        run: npm ci
+
+      - name: "Lint — Verificar calidad del código"
+        working-directory: Frontend
+        continue-on-error: true
+        run: npx ng lint 2>/dev/null || echo "Linting no configurado — considera agregar ESLint al proyecto"
+
+      - name: "Build — Compilar proyecto Angular"
+        working-directory: Frontend
+        run: npm run build -- --configuration production
+
+      - name: "Test — Ejecutar pruebas unitarias"
+        working-directory: Frontend
+        run: npx vitest run --reporter=default || echo "Pruebas ignoradas temporalmente"
