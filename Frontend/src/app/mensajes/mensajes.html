@@ -1,0 +1,446 @@
+<div class="mensajes-page">
+  <comp-nav-bar></comp-nav-bar>
+
+  <main class="mensajes-container">
+    <div class="content-header-v2 mensajes-header">
+      <h1 class="section-title">Bandeja de Entrada <span class="text-accent">POKET.</span></h1>
+      <p class="section-subtitle">Gestiona tus conversaciones con otros entrenadores y negocia intercambios de cartas.</p>
+    </div>
+
+    <div class="messenger-glow"></div>
+    <div class="messenger-wrapper">
+      
+      <aside class="sidebar-chats">
+        <div class="sidebar-header">
+          <h2 class="sidebar-title">Conversaciones</h2>
+          <span class="chat-count badge">{{ conversaciones().length }}</span>
+        </div>
+
+        <div class="chats-list-scroll">
+          @if (loadingChats()) {
+            <div class="sidebar-loading">
+              <div class="spinner"></div>
+              <p>Cargando conversaciones...</p>
+            </div>
+          } @else if (conversaciones().length === 0) {
+            <div class="sidebar-empty">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <p>No tienes chats activos.</p>
+              <button class="btn-goto-market-premium" routerLink="/explorar">IR AL MERCADO</button>
+            </div>
+          } @else {
+            <div class="chats-list">
+              @for (conv of conversaciones(); track conv.contacto.id) {
+                <button 
+                  class="chat-item" 
+                  [class.active]="seleccionado()?.contacto?.id === conv.contacto.id"
+                  (click)="seleccionarConversacion(conv)"
+                >
+                  <div class="avatar-container">
+                    @if (conv.contacto.foto) {
+                      <img [src]="conv.contacto.foto" alt="Avatar" class="chat-avatar">
+                    } @else {
+                      <div class="chat-avatar-placeholder">
+                        {{ conv.contacto.nombre.charAt(0) }}
+                      </div>
+                    }
+                    <div class="presence-dot" [style.background]="getPresenceColor(conv.contacto.estadoPresencia)"></div>
+                  </div>
+                  
+                  <div class="chat-item-info">
+                    <div class="chat-item-header">
+                      <span class="user-name">{{ conv.contacto.nombre }} {{ conv.contacto.apellido }}</span>
+                      <span class="msg-date">{{ formatearFecha(conv.ultimoMensaje?.fecha) }}</span>
+                    </div>
+                    <div class="chat-item-body">
+                      <p class="last-msg-text" [class.unread]="conv.noLeidos > 0">
+                        @if (conv.ultimoMensaje?.idRemitente === currentUser()?.id) {
+                          <span class="prefix-you">Tú: </span>
+                        }
+                        @if (esImagen(conv.ultimoMensaje?.texto)) {
+                          <span>📷 Imagen enviada</span>
+                        } @else {
+                          {{ conv.ultimoMensaje?.texto || 'Comenzar nueva conversación...' }}
+                        }
+                      </p>
+                      @if (conv.noLeidos > 0) {
+                        <span class="badge unread-badge">{{ conv.noLeidos }}</span>
+                      }
+                    </div>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </aside>
+
+      <section class="chat-panel">
+        @if (seleccionado()) {
+          <div class="chat-header">
+            <div class="chat-header-user">
+              <div class="avatar-container header-avatar">
+                @if (seleccionado().contacto.foto) {
+                  <img [src]="seleccionado().contacto.foto" alt="Avatar" class="chat-avatar">
+                } @else {
+                  <div class="chat-avatar-placeholder">
+                    {{ seleccionado().contacto.nombre.charAt(0) }}
+                  </div>
+                }
+                <div class="presence-dot" [style.background]="getPresenceColor(seleccionado().contacto.estadoPresencia)"></div>
+              </div>
+              <div class="user-meta">
+                <h3 class="active-chat-title">{{ seleccionado().contacto.nombre }} {{ seleccionado().contacto.apellido }}</h3>
+                <span class="status-text">{{ getPresenceLabel(seleccionado().contacto.estadoPresencia) }}</span>
+              </div>
+            </div>
+            
+            <div class="options-menu-container">
+              <button class="btn-propose-trade" (click)="openProposeModal()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                CERRAR TRATO
+              </button>
+              
+              <button class="btn-options-trigger" (click)="toggleOptionsMenu($event)" title="Opciones de chat">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <circle cx="12" cy="5" r="2.2"></circle>
+                  <circle cx="12" cy="12" r="2.2"></circle>
+                  <circle cx="12" cy="19" r="2.2"></circle>
+                </svg>
+              </button>
+              
+              @if (showOptionsMenu()) {
+                <div class="chat-options-dropdown">
+                  <button (click)="reportarEntrenadorActual(); $event.stopPropagation()" class="dropdown-item warning">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="item-icon">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Reportar entrenador</span>
+                  </button>
+                  <button (click)="eliminarConversacionActual(); $event.stopPropagation()" class="dropdown-item danger">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="item-icon">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Eliminar conversación</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="messages-area" #scrollContainer>
+            @if (loadingMensajes()) {
+              <div class="messages-loading">
+                <div class="spinner"></div>
+                <p>Cargando mensajes...</p>
+              </div>
+            } @else if (mensajes().length === 0) {
+              <div class="messages-empty">
+                <div class="icon-bubble">
+                  <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                  </svg>
+                </div>
+                <h3>¡Saluda a {{ seleccionado().contacto.nombre }}!</h3>
+                <p>Escribe tu mensaje abajo para iniciar la conversación sobre cartas o intercambios.</p>
+              </div>
+            } @else {
+              <div class="messages-list">
+                @for (msg of mensajes(); track msg.idMensaje) {
+                  <div class="message-row" [class.sent]="msg.idRemitente === currentUser()?.id" [class.system-card-row]="isTradeProposal(msg.texto) || isTradeConfirmed(msg.texto)">
+                    <div class="message-bubble" [class.system-card-bubble]="isTradeProposal(msg.texto) || isTradeConfirmed(msg.texto)" [title]="formatearHoraCompleta(msg.fecha)">
+                      <div class="message-content">
+                        @if (esImagen(msg.texto)) {
+                          <img [src]="msg.texto" alt="Imagen adjunta" class="chat-image-attachment" (load)="scrollToBottom()">
+                        } @else if (isTradeProposal(msg.texto)) {
+                          <div class="trade-proposal-card">
+                            <div class="trade-card-header">
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2ecc71" stroke-width="2.5">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                              </svg>
+                              <span>PROPUESTA DE TRATO</span>
+                            </div>
+                            <div class="trade-card-body">
+                              <div class="trade-item">
+                                <span class="trade-label">Transferir Carta:</span>
+                                <span class="trade-value">{{ getTradeProposalData(msg.texto)?.nombreCarta }}</span>
+                              </div>
+                              @if (getTradeProposalData(msg.texto)?.nombreCartaIntercambio) {
+                                <div class="trade-item exchange-item">
+                                  <span class="trade-label">A cambio de:</span>
+                                  <span class="trade-value text-accent">{{ getTradeProposalData(msg.texto)?.nombreCartaIntercambio }}</span>
+                                </div>
+                              } @else {
+                                <div class="trade-item price-item">
+                                  <span class="trade-label">A cambio de:</span>
+                                  <span class="trade-value text-accent">
+                                    {{ getTradeProposalData(msg.texto)?.precio ? (getTradeProposalData(msg.texto)?.precio | currency:'CLP':'symbol-narrow':'1.0-0') : 'Gratis' }}
+                                  </span>
+                                </div>
+                              }
+                            </div>
+                            <div class="trade-card-footer">
+                              @if (msg.idRemitente !== currentUser()?.id) {
+                                <button class="btn-trade-accept" (click)="confirmarTrato(msg, getTradeProposalData(msg.texto))">ACEPTAR TRATO</button>
+                              } @else {
+                                <span class="trade-waiting">Esperando respuesta...</span>
+                              }
+                            </div>
+                          </div>
+                        } @else if (isTradeConfirmed(msg.texto)) {
+                          <div class="trade-confirmed-card">
+                            <div class="confirmed-icon-wrapper">
+                              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#2ecc71" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            </div>
+                            <div class="confirmed-details">
+                              <h3>TRATO CERRADO CON ÉXITO</h3>
+                              <p>La carta ha sido transferida y el inventario actualizado.</p>
+                              @if (getTradeConfirmedData(msg.texto)?.idComprador === currentUser()?.id) {
+                                <button class="btn-confirmed-review" (click)="openDirectReviewModal(getTradeConfirmedData(msg.texto)?.idVendedor)">DEJAR RESEÑA AL VENDEDOR</button>
+                              } @else if (getTradeConfirmedData(msg.texto)?.idVendedor === currentUser()?.id) {
+                                <button class="btn-confirmed-review" (click)="openDirectReviewModal(getTradeConfirmedData(msg.texto)?.idComprador)">DEJAR RESEÑA AL COMPRADOR</button>
+                              }
+                            </div>
+                          </div>
+                        } @else {
+                          {{ msg.texto }}
+                        }
+                      </div>
+                      <div class="message-footer">
+                        <span class="message-time">{{ formatearFecha(msg.fecha) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="chat-input-bar">
+            <form (submit)="enviar(); $event.preventDefault()" class="input-form">
+              <button type="button" class="btn-attach" (click)="triggerFileInput()" title="Adjuntar imagen">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                </svg>
+              </button>
+              <input 
+                type="file" 
+                #fileInput 
+                style="display: none;" 
+                accept="image/*" 
+                (change)="onFileSelected($event)"
+              >
+
+              <input 
+                type="text" 
+                [(ngModel)]="textoMensaje" 
+                name="texto" 
+                placeholder="Escribe un mensaje aquí..." 
+                autocomplete="off"
+                maxlength="1000"
+                class="message-input"
+              >
+              <button type="submit" class="btn-send-premium" [disabled]="!textoMensaje().trim()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                <span>ENVIAR</span>
+              </button>
+            </form>
+          </div>
+        } @else {
+          <div class="chat-empty-panel">
+            <div class="empty-glow"></div>
+            <div class="empty-content">
+              <div class="chat-illustration">
+                <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <h2 class="empty-panel-title">TUS CONVERSACIONES</h2>
+              <p>Selecciona a cualquier entrenador de tu lista de chats a la izquierda para ver su historial o iniciar un nuevo mensaje.</p>
+              <button class="btn-browse-sellers-premium" routerLink="/explorar">EXPLORAR CARTAS</button>
+            </div>
+          </div>
+        }
+      </section>
+
+    </div>
+  </main>
+
+  @if (showProposeModal()) {
+    <div class="review-modal-overlay">
+      <div class="review-modal-content close-deal-modal">
+        <h2 class="review-modal-title">Cerrar Trato</h2>
+        <p class="review-modal-subtitle">Establece las condiciones para concretar la transacción con <strong>{{ seleccionado()?.contacto?.nombre }}</strong>.</p>
+        
+        <div class="form-group">
+          <label class="form-label">¿Qué deseas proponer?</label>
+          <div class="role-toggle-group">
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeRole() === 'comprar'" 
+              (click)="proposeRole.set('comprar'); selectedCartaToSell.set(null); selectedCartaToOffer.set(null);"
+            >
+              Comprar carta de {{ seleccionado()?.contacto?.nombre }}
+            </button>
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeRole() === 'vender'" 
+              (click)="proposeRole.set('vender'); selectedCartaToSell.set(null); selectedCartaToOffer.set(null);"
+            >
+              Vender una de mis cartas
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            {{ proposeRole() === 'comprar' ? 'Carta que deseas comprar' : 'Tu carta a vender' }}
+          </label>
+          <select class="form-select" [(ngModel)]="selectedCartaToSell">
+            <option [ngValue]="null">Selecciona una carta...</option>
+            @if (proposeRole() === 'comprar') {
+              @for (item of inventarioContacto(); track item.idInventarioUser) {
+                <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+              }
+            } @else {
+              @for (item of inventarioMio(); track item.idInventarioUser) {
+                <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+              }
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Modalidad del Trato</label>
+          <div class="role-toggle-group">
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeMode() === 'dinero'" 
+              (click)="proposeMode.set('dinero'); selectedCartaToOffer.set(null);"
+            >
+              Venta (Dinero)
+            </button>
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeMode() === 'intercambio'" 
+              (click)="proposeMode.set('intercambio'); proposedPrice.set(null);"
+            >
+              Trueque (Intercambio)
+            </button>
+          </div>
+        </div>
+
+        @if (proposeMode() === 'dinero') {
+          <div class="form-group">
+            <label class="form-label">Precio</label>
+            @if (proposeRole() === 'comprar') {
+              <div class="value-box readonly" style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-family: 'Share Tech Mono', monospace; font-size: 1.1rem; color: #2ecc71;">
+                {{ selectedCartaToSell()?.precio ? (selectedCartaToSell()?.precio | currency:'CLP':'symbol-narrow':'1.0-0') : '$0 CLP' }}
+              </div>
+            } @else {
+              <input type="number" class="form-input" [(ngModel)]="proposedPrice" placeholder="Ej: 5000">
+            }
+          </div>
+        } @else {
+          <div class="form-group">
+            <label class="form-label">
+              {{ proposeRole() === 'comprar' ? 'Tu carta que das a cambio' : 'Carta de ellos que recibes a cambio' }}
+            </label>
+            <select class="form-select" [(ngModel)]="selectedCartaToOffer">
+              <option [ngValue]="null">Selecciona una carta para el trueque...</option>
+              @if (proposeRole() === 'comprar') {
+                @for (item of inventarioMio(); track item.idInventarioUser) {
+                  <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+                }
+              } @else {
+                @for (item of inventarioContacto(); track item.idInventarioUser) {
+                  <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+                }
+              }
+            </select>
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closeProposeModal()" [disabled]="proposingTrade()">CANCELAR</button>
+          <button class="btn-submit" (click)="submitProposeTrade()" [disabled]="proposingTrade() || !selectedCartaToSell() || (proposeMode() === 'intercambio' && !selectedCartaToOffer())">
+            {{ proposingTrade() ? 'ENVIANDO...' : 'PROPONER TRATO' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL PARA DEJAR RESEÑA (Después de confirmar trato) -->
+  @if (showReviewModal()) {
+    <div class="review-modal-overlay">
+      <div class="review-modal-content">
+        <h2 class="review-modal-title">¡Trato Confirmado!</h2>
+        <p class="review-modal-subtitle">Por favor, califica tu experiencia con <strong>{{ selectedReviewSeller()?.nombre }}</strong>.</p>
+        
+        <div class="form-group">
+          <label class="form-label">Calificación</label>
+          <div class="stars-selector">
+            @for (star of [1,2,3,4,5]; track $index) {
+              <span class="star" (click)="setRating(star)" [class.active]="star <= newReviewRating()">★</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tu Experiencia</label>
+          <textarea class="form-textarea" [(ngModel)]="newReviewText" rows="4" placeholder="¿Cómo fue el trato? ¿El estado de la carta era el acordado?"></textarea>
+        </div>
+
+        @if (reviewError()) {
+          <div class="review-error-msg">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="error-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            {{ reviewError() }}
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closeReviewModal()" [disabled]="reviewSubmitting()">SALTAR</button>
+          <button class="btn-submit" (click)="submitReview()" [disabled]="reviewSubmitting()">
+            {{ reviewSubmitting() ? 'ENVIANDO...' : 'ENVIAR RESEÑA' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- SUCCESS TOAST PARA RESEÑAS -->
+  @if (reviewSuccess()) {
+    <div class="success-toast">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" class="success-icon">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      {{ reviewSuccess() }}
+    </div>
+  }
+</div>

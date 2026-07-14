@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Backend.Models;
@@ -37,6 +37,10 @@ public partial class Usuario
 
     public string? ImgPerfil { get; set; }
 
+    public string? MotivoBaneo { get; set; }
+
+    public DateTime? FechaDesbaneo { get; set; }
+
     public virtual ICollection<Guardado> Guardados { get; set; } = new List<Guardado>();
 
     public virtual ICollection<InventarioUsuario> InventarioUsuarios { get; set; } = new List<InventarioUsuario>();
@@ -47,5 +51,7 @@ public partial class Usuario
 
     public virtual ICollection<Notificacione> Notificaciones { get; set; } = new List<Notificacione>();
 
-    public virtual ICollection<Reseña> Reseñas { get; set; } = new List<Reseña>();
+    public virtual ICollection<Reseña> ReseñasHechas { get; set; } = new List<Reseña>();
+
+    public virtual ICollection<Reseña> ReseñasRecibidas { get; set; } = new List<Reseña>();
 }

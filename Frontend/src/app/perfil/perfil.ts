@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { TcgService } from '../services/tcg.service';
+import { ResenaService, Resena } from '../services/resena.service';
 import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from '../utils/password-policy';
 import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
 
@@ -17,6 +18,7 @@ import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
 export class PerfilComponent implements OnInit {
   private authService = inject(AuthService);
   private tcgService = inject(TcgService);
+  private resenaService = inject(ResenaService);
   private router = inject(Router);
 
   public isEditing = signal<boolean>(false);
@@ -44,6 +46,9 @@ export class PerfilComponent implements OnInit {
 
   public currentUser = signal<any>(null);
   public cantidadCartas = signal<number>(0);
+  public misResenas = signal<Resena[]>([]);
+  public promedioResenas = signal<number>(0);
+  public promedioEstrellasRedondeado = signal<number>(0);
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -54,6 +59,25 @@ export class PerfilComponent implements OnInit {
       this.currentUser.set(user);
       this.resetEditData(user);
       this.cargarCantidadCartas(user.id);
+      this.cargarResenas(user.id);
+    });
+  }
+
+  cargarResenas(userId: number) {
+    this.resenaService.getResenasPorUsuario(userId).subscribe({
+      next: (resenas) => {
+        this.misResenas.set(resenas);
+        if (resenas.length > 0) {
+          const sum = resenas.reduce((acc, r) => acc + r.calificacion, 0);
+          const avg = sum / resenas.length;
+          this.promedioResenas.set(avg);
+          this.promedioEstrellasRedondeado.set(Math.round(avg));
+        } else {
+          this.promedioResenas.set(0);
+          this.promedioEstrellasRedondeado.set(0);
+        }
+      },
+      error: (err) => console.error('Error al cargar reseñas:', err)
     });
   }
 

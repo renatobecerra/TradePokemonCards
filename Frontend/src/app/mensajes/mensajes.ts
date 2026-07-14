@@ -1,0 +1,658 @@
+import { Component, OnInit, OnDestroy, signal, inject, ViewChild, ElementRef, AfterViewChecked, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../services/auth.service';
+import { MensajesService } from '../services/mensajes.service';
+import { AdminService } from '../services/admin.service';
+import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
+import { TransaccionService, ProponerTratoDto } from '../services/transaccion.service';
+import { ResenaService, Resena } from '../services/resena.service';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-mensajes',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink, CompNavBarComponent],
+  templateUrl: './mensajes.html',
+  styleUrls: ['./mensajes.css']
+})
+export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
+  private authService = inject(AuthService);
+  private mensajesService = inject(MensajesService);
+  private adminService = inject(AdminService);
+  private transaccionService = inject(TransaccionService);
+  private resenaService = inject(ResenaService);
+  private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
+  @ViewChild('fileInput') private fileInput!: ElementRef;
+
+  public currentUser = signal<any>(null);
+  public conversaciones = signal<any[]>([]);
+  public seleccionado = signal<any>(null);
+  public mensajes = signal<any[]>([]);
+  public textoMensaje = signal<string>('');
+  
+  public loadingChats = signal<boolean>(true);
+  public loadingMensajes = signal<boolean>(false);
+
+  public showOptionsMenu = signal<boolean>(false);
+
+  // --- TRADE MODAL STATE ---
+  public showProposeModal = signal<boolean>(false);
+  public inventarioMio = signal<any[]>([]);
+  public inventarioContacto = signal<any[]>([]);
+  public proposeRole = signal<'comprar' | 'vender'>('comprar');
+  public proposeMode = signal<'dinero' | 'intercambio'>('dinero');
+  public selectedCartaToSell = signal<any>(null);
+  public selectedCartaToOffer = signal<any>(null);
+  public proposedPrice = signal<number | null>(null);
+  public proposingTrade = signal<boolean>(false);
+
+  // --- REVIEW MODAL STATE ---
+  public showReviewModal = signal<boolean>(false);
+  public selectedReviewSeller = signal<any>(null);
+  public newReviewRating = signal<number>(5);
+  public newReviewText = signal<string>('');
+  public reviewSubmitting = signal<boolean>(false);
+  public reviewError = signal<string | null>(null);
+  public reviewSuccess = signal<string | null>(null);
+
+  private pollSubscription: any = null;
+  private shouldScrollToBottom = false;
+
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      } else {
+        this.currentUser.set(user);
+        this.cargarConversacionesYProcesarQuery();
+      }
+    });
+
+    this.pollSubscription = setInterval(() => {
+      this.actualizarChatsYMensajes();
+    }, 4000);
+  }
+
+  ngOnDestroy() {
+    if (this.pollSubscription) {
+      clearInterval(this.pollSubscription);
+    }
+  }
+
+  ngAfterViewChecked() {
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
+    }
+  }
+
+  cargarConversacionesYProcesarQuery() {
+    const user = this.currentUser();
+    if (!user) return;
+
+    this.loadingChats.set(true);
+    this.mensajesService.getConversaciones(user.id).subscribe({
+      next: (convs) => {
+        this.conversaciones.set(convs);
+        this.loadingChats.set(false);
+
+        this.route.queryParams.subscribe(params => {
+          const contactIdParam = params['contactId'] || params['usuarioId'] || params['sellerId'];
+          if (contactIdParam) {
+            const cId = parseInt(contactIdParam, 10);
+            
+            const convExistente = convs.find(c => c.contacto.id === cId);
+            if (convExistente) {
+              this.seleccionarConversacion(convExistente);
+            } else {
+              this.mensajesService.getUsuarioDetalle(cId).subscribe({
+                next: (contactoInfo) => {
+                  const nuevaConvTemp = {
+                    contacto: contactoInfo,
+                    ultimoMensaje: null,
+                    noLeidos: 0,
+                    esTemporal: true
+                  };
+                  this.conversaciones.set([nuevaConvTemp, ...convs]);
+                  this.seleccionarConversacion(nuevaConvTemp);
+                },
+                error: (err) => console.error('Error al cargar detalle del usuario de la consulta:', err)
+              });
+            }
+          } else if (convs.length > 0 && !this.seleccionado()) {
+            this.seleccionarConversacion(convs[0]);
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error cargando conversaciones:', err);
+        this.loadingChats.set(false);
+      }
+    });
+  }
+
+  seleccionarConversacion(conv: any) {
+    this.showOptionsMenu.set(false);
+    this.seleccionado.set(conv);
+    this.mensajes.set([]);
+    this.loadingMensajes.set(true);
+    this.shouldScrollToBottom = true;
+
+    const user = this.currentUser();
+    if (!user) return;
+
+    this.mensajesService.getHistorial(user.id, conv.contacto.id).subscribe({
+      next: (msgs) => {
+        this.mensajes.set(msgs);
+        this.loadingMensajes.set(false);
+        this.shouldScrollToBottom = true;
+        
+        conv.noLeidos = 0;
+        
+        this.mensajesService.actualizarContadorPendientes(user.id);
+
+        const params = this.route.snapshot.queryParams;
+        const cardName = params['cardName'];
+        const cardState = params['cardState'];
+        const cardPrice = params['cardPrice'];
+
+        if (cardName) {
+          if (msgs.length === 0) {
+            const autoMsg = `¡Hola! Me interesa tu carta: "${cardName}" (${cardState || 'Buen Estado'}) a ${cardPrice || 'N/A'}.`;
+            this.mensajesService.enviarMensaje(user.id, conv.contacto.id, autoMsg).subscribe({
+              next: (newMsg) => {
+                this.mensajes.update(m => [...m, newMsg]);
+                this.scrollToBottom();
+              }
+            });
+          } else {
+            this.textoMensaje.set(`¡Hola! Estoy interesado en tu carta "${cardName}" (${cardState || 'Buen Estado'}) a ${cardPrice || 'N/A'}.`);
+          }
+
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { cardName: null, cardState: null, cardPrice: null, contactId: null },
+            queryParamsHandling: 'merge'
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar historial:', err);
+        this.loadingMensajes.set(false);
+      }
+    });
+  }
+
+  actualizarChatsYMensajes() {
+    const user = this.currentUser();
+    if (!user) return;
+
+    this.mensajesService.getConversaciones(user.id).subscribe({
+      next: (convs) => {
+        const seleccionadoActual = this.seleccionado();
+        let convsActualizadas = [...convs];
+
+        if (seleccionadoActual && seleccionadoActual.esTemporal) {
+          const yaExisteEnBackend = convs.some(c => c.contacto.id === seleccionadoActual.contacto.id);
+          if (!yaExisteEnBackend) {
+            convsActualizadas = [seleccionadoActual, ...convs];
+          } else {
+            seleccionadoActual.esTemporal = false;
+          }
+        }
+
+        this.conversaciones.set(convsActualizadas);
+
+        if (seleccionadoActual) {
+          this.mensajesService.getHistorial(user.id, seleccionadoActual.contacto.id).subscribe({
+              next: (msgs) => {
+                const currentMsgs = this.mensajes();
+                if (
+                  msgs.length !== currentMsgs.length || 
+                  (msgs.length > 0 && currentMsgs.length > 0 && msgs[msgs.length - 1].idMensaje !== currentMsgs[currentMsgs.length - 1].idMensaje)
+                ) {
+                  this.mensajes.set(msgs);
+                  this.shouldScrollToBottom = true;
+                }
+              }
+          });
+        }
+      }
+    });
+  }
+
+  enviar() {
+    const texto = this.textoMensaje().trim();
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    
+    if (!texto || !user || !sel) return;
+
+    this.textoMensaje.set('');
+
+    this.mensajesService.enviarMensaje(user.id, sel.contacto.id, texto).subscribe({
+      next: (nuevoMsg) => {
+        this.mensajes.set([...this.mensajes(), nuevoMsg]);
+        this.shouldScrollToBottom = true;
+
+        sel.ultimoMensaje = nuevoMsg;
+        if (sel.esTemporal) {
+          sel.esTemporal = false;
+        }
+
+        const listaConvs = this.conversaciones().filter(c => c.contacto.id !== sel.contacto.id);
+        this.conversaciones.set([sel, ...listaConvs]);
+        
+        this.mensajesService.actualizarContadorPendientes(user.id);
+      },
+      error: (err) => console.error('Error enviando mensaje:', err)
+    });
+  }
+
+  triggerFileInput() {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona una archivo de imagen válido (.png, .jpg, .jpeg, .gif, etc.)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const rawBase64 = e.target.result;
+      this.compressImage(rawBase64, (compressedBase64) => {
+        this.enviarMensajeImagen(compressedBase64);
+      });
+    };
+    reader.readAsDataURL(file);
+
+    event.target.value = '';
+  }
+
+  compressImage(dataUrl: string, callback: (result: string) => void) {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      const maxDimension = 500;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL('image/jpeg', 0.65);
+        callback(compressed);
+      } else {
+        callback(dataUrl);
+      }
+    };
+    img.src = dataUrl;
+  }
+
+  enviarMensajeImagen(base64Data: string) {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    if (!user || !sel || !base64Data) return;
+
+    this.mensajesService.enviarMensaje(user.id, sel.contacto.id, base64Data).subscribe({
+      next: (nuevoMsg) => {
+        this.mensajes.set([...this.mensajes(), nuevoMsg]);
+        this.shouldScrollToBottom = true;
+
+        sel.ultimoMensaje = nuevoMsg;
+        if (sel.esTemporal) {
+          sel.esTemporal = false;
+        }
+
+        const listaConvs = this.conversaciones().filter(c => c.contacto.id !== sel.contacto.id);
+        this.conversaciones.set([sel, ...listaConvs]);
+        
+        this.mensajesService.actualizarContadorPendientes(user.id);
+      },
+      error: (err) => console.error('Error al enviar mensaje con imagen:', err)
+    });
+  }
+
+  esImagen(texto: string | null | undefined): boolean {
+    return !!texto && texto.startsWith('data:image/');
+  }
+
+  isTradeProposal(texto: string | null | undefined): boolean {
+    return !!texto && texto.startsWith('[SISTEMA_PROPUESTA_TRATO]');
+  }
+
+  isTradeConfirmed(texto: string | null | undefined): boolean {
+    return !!texto && texto.startsWith('[SISTEMA_TRATO_CONFIRMADO]');
+  }
+
+  getTradeProposalData(texto: string): any {
+    try {
+      const jsonStr = texto.replace('[SISTEMA_PROPUESTA_TRATO]', '');
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  getTradeConfirmedData(texto: string): any {
+    try {
+      const jsonStr = texto.replace('[SISTEMA_TRATO_CONFIRMADO]', '');
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  openProposeModal() {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    if (!user || !sel) return;
+    
+    this.proposeRole.set('comprar');
+    this.proposeMode.set('dinero');
+    this.selectedCartaToSell.set(null);
+    this.selectedCartaToOffer.set(null);
+    this.proposedPrice.set(null);
+    this.showProposeModal.set(true);
+
+    this.http.get<any[]>(`http://localhost:5210/api/inventario/${user.id}`).subscribe({
+      next: (inv) => this.inventarioMio.set(inv),
+      error: () => this.inventarioMio.set([])
+    });
+
+    this.http.get<any[]>(`http://localhost:5210/api/inventario/${sel.contacto.id}`).subscribe({
+      next: (inv) => this.inventarioContacto.set(inv),
+      error: () => this.inventarioContacto.set([])
+    });
+  }
+
+  closeProposeModal() {
+    this.showProposeModal.set(false);
+    this.selectedCartaToSell.set(null);
+    this.selectedCartaToOffer.set(null);
+    this.proposedPrice.set(null);
+  }
+
+  submitProposeTrade() {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    const mainCard = this.selectedCartaToSell();
+    if (!user || !sel || !mainCard) return;
+
+    this.proposingTrade.set(true);
+
+    let sellerId = user.id;
+    let buyerId = sel.contacto.id;
+    let mainCardId = mainCard.idInventarioUser;
+    let swapCardId: number | null = null;
+    let price: number | null = null;
+
+    if (this.proposeRole() === 'comprar') {
+      sellerId = sel.contacto.id;
+      buyerId = user.id;
+      mainCardId = mainCard.idInventarioUser;
+      if (this.proposeMode() === 'intercambio') {
+        const swapCard = this.selectedCartaToOffer();
+        if (swapCard) swapCardId = swapCard.idInventarioUser;
+      } else {
+        price = mainCard.precio;
+      }
+    } else {
+      sellerId = user.id;
+      buyerId = sel.contacto.id;
+      mainCardId = mainCard.idInventarioUser;
+      if (this.proposeMode() === 'intercambio') {
+        const swapCard = this.selectedCartaToOffer();
+        if (swapCard) swapCardId = swapCard.idInventarioUser;
+      } else {
+        price = this.proposedPrice();
+      }
+    }
+
+    const dto: ProponerTratoDto = {
+      idVendedor: sellerId,
+      idComprador: buyerId,
+      idInventarioUser: mainCardId,
+      precio: price,
+      idInventarioUserIntercambio: swapCardId,
+      idProponente: user.id
+    };
+
+    this.transaccionService.proponerTrato(dto).subscribe({
+      next: () => {
+        this.proposingTrade.set(false);
+        this.closeProposeModal();
+        this.actualizarChatsYMensajes();
+      },
+      error: (err) => {
+        console.error('Error al proponer trato', err);
+        this.proposingTrade.set(false);
+        alert('Hubo un error al enviar la propuesta.');
+      }
+    });
+  }
+
+  confirmarTrato(msg: any, tradeData: any) {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    if (!user || !sel || !tradeData) return;
+
+    const dto: ProponerTratoDto = {
+      idVendedor: tradeData.idVendedor,
+      idComprador: tradeData.idComprador,
+      idInventarioUser: tradeData.idInventarioUser,
+      precio: tradeData.precio,
+      idInventarioUserIntercambio: tradeData.idInventarioUserIntercambio
+    };
+
+    this.transaccionService.confirmarTrato(dto).subscribe({
+      next: () => {
+        this.actualizarChatsYMensajes();
+        alert('¡Trato confirmado exitosamente!');
+      },
+      error: (err) => {
+        console.error('Error al confirmar trato', err);
+        alert(err.error?.message || 'Error al confirmar la transacción.');
+      }
+    });
+  }
+
+  openDirectReviewModal(targetUserId: number) {
+    if (!targetUserId) return;
+    this.mensajesService.getUsuarioDetalle(targetUserId).subscribe({
+      next: (userDetalle) => {
+        this.selectedReviewSeller.set(userDetalle);
+        this.newReviewRating.set(5);
+        this.newReviewText.set('');
+        this.reviewError.set(null);
+        this.reviewSuccess.set(null);
+        this.showReviewModal.set(true);
+      },
+      error: (err) => console.error('Error fetching target user details for review', err)
+    });
+  }
+
+  // --- REVIEW LOGIC ---
+  closeReviewModal() {
+    this.showReviewModal.set(false);
+    this.selectedReviewSeller.set(null);
+  }
+
+  setRating(rating: number) {
+    this.newReviewRating.set(rating);
+  }
+
+  submitReview() {
+    const currentUser = this.authService.currentUserValue;
+    const seller = this.selectedReviewSeller();
+    if (!currentUser || !seller) return;
+
+    if (this.newReviewText().trim().length < 5) {
+      this.reviewError.set('La reseña debe tener al menos 5 caracteres.');
+      return;
+    }
+
+    this.reviewSubmitting.set(true);
+    this.reviewError.set(null);
+
+    const resena: Resena = {
+      idUsuarioResenador: currentUser.id,
+      idUsuarioResenado: seller.id,
+      idItem: null,
+      calificacion: this.newReviewRating(),
+      texto: this.newReviewText().trim()
+    };
+
+    this.resenaService.crearResena(resena).subscribe({
+      next: (res) => {
+        this.reviewSuccess.set('Reseña guardada exitosamente. ¡Gracias!');
+        setTimeout(() => this.reviewSuccess.set(null), 4000);
+        this.reviewSubmitting.set(false);
+        this.closeReviewModal();
+      },
+      error: (err) => {
+        console.error('Error al enviar reseña', err);
+        this.reviewError.set(err.error?.message || 'Hubo un error al guardar la reseña.');
+        this.reviewSubmitting.set(false);
+      }
+    });
+  }
+
+  eliminarConversacionActual() {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    if (!user || !sel) return;
+
+    if (confirm(`¿Estás seguro de que deseas eliminar la conversación con ${sel.contacto.nombre} ${sel.contacto.apellido}? Se borrará permanentemente todo el historial.`)) {
+      this.mensajesService.deleteConversacion(user.id, sel.contacto.id).subscribe({
+        next: () => {
+          const nuevasConvs = this.conversaciones().filter(c => c.contacto.id !== sel.contacto.id);
+          this.conversaciones.set(nuevasConvs);
+          
+          this.showOptionsMenu.set(false);
+          this.seleccionado.set(null);
+          this.mensajes.set([]);
+          
+          this.mensajesService.actualizarContadorPendientes(user.id);
+        },
+        error: (err) => {
+          console.error('Error al eliminar conversación:', err);
+          alert('Hubo un problema al eliminar la conversación.');
+        }
+      });
+    }
+  }
+
+  toggleOptionsMenu(event: Event) {
+    event.stopPropagation();
+    this.showOptionsMenu.set(!this.showOptionsMenu());
+  }
+
+  scrollToBottom(): void {
+    try {
+      this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
+    } catch (err) {
+    }
+  }
+
+  getPresenceColor(estado: number): string {
+    switch (estado) {
+      case 1: return '#2ecc71';
+      case 2: return '#e74c3c';
+      case 0: return '#95afc0';
+      default: return '#2ecc71';
+    }
+  }
+
+  getPresenceLabel(estado: number): string {
+    switch (estado) {
+      case 1: return 'Conectado';
+      case 2: return 'No molestar';
+      case 0: return 'Desconectado';
+      default: return 'Conectado';
+    }
+  }
+
+  formatearFecha(fechaStr: string | null): string {
+    if (!fechaStr) return '';
+    const fecha = new Date(fechaStr);
+    
+    const hoy = new Date();
+    if (fecha.toDateString() === hoy.toDateString()) {
+      return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
+  }
+
+  formatearHoraCompleta(fechaStr: string | null): string {
+    if (!fechaStr) return '';
+    const fecha = new Date(fechaStr);
+    return fecha.toLocaleDateString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+
+  reportarEntrenadorActual() {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    if (!user || !sel) return;
+
+    this.showOptionsMenu.set(false);
+
+    const motivo = prompt(`Reportar a ${sel.contacto.nombre} ${sel.contacto.apellido}\nEscribe el motivo del reporte (comportamiento ofensivo, intento de estafa, etc.):`);
+    if (motivo === null) return;
+    
+    const motivoTrimmed = motivo.trim();
+    if (!motivoTrimmed) {
+      alert('Debes ingresar un motivo válido para realizar el reporte.');
+      return;
+    }
+
+    const payload = {
+      IdUsuarioReportante: user.id,
+      IdUsuarioReportado: sel.contacto.id,
+      Motivo: motivoTrimmed
+    };
+
+    this.adminService.crearReporte(payload).subscribe({
+      next: () => {
+        alert('Reporte enviado con éxito. Un administrador lo revisará a la brevedad.');
+      },
+      error: (err) => {
+        console.error('Error al enviar reporte:', err);
+        alert('Hubo un problema al enviar el reporte. Por favor inténtalo de nuevo.');
+      }
+    });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    if (this.showOptionsMenu()) {
+      const container = document.querySelector('.options-menu-container');
+      if (container && !container.contains(event.target as Node)) {
+        this.showOptionsMenu.set(false);
+      }
+    }
+  }
+}

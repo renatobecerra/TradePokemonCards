@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
@@ -31,6 +31,10 @@ public partial class PokemonMarketContext : DbContext
     public virtual DbSet<TopRegistro> TopRegistros { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
+
+    public virtual DbSet<Reporte> Reportes { get; set; }
+
+    public virtual DbSet<Transaccion> Transacciones { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -185,25 +189,31 @@ public partial class PokemonMarketContext : DbContext
             entity.ToTable("reseñas");
 
             entity.HasIndex(e => e.IdItem, "FK_Reseña_Item");
-
-            entity.HasIndex(e => e.IdUsuario, "FK_Reseña_Usuario");
+            entity.HasIndex(e => e.IdUsuarioReseñador, "FK_Reseña_Usuario_Reseñador");
+            entity.HasIndex(e => e.IdUsuarioReseñado, "FK_Reseña_Usuario_Reseñado");
 
             entity.Property(e => e.ReseñaId).HasColumnName("Reseña_id");
             entity.Property(e => e.Fecha)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime");
             entity.Property(e => e.IdItem).HasColumnName("ID_Item");
-            entity.Property(e => e.IdUsuario).HasColumnName("ID_Usuario");
+            entity.Property(e => e.IdUsuarioReseñador).HasColumnName("ID_Usuario_Reseñador");
+            entity.Property(e => e.IdUsuarioReseñado).HasColumnName("ID_Usuario_Reseñado");
+            entity.Property(e => e.Calificacion).HasColumnName("Calificacion");
             entity.Property(e => e.Texto).HasColumnType("text");
 
             entity.HasOne(d => d.IdItemNavigation).WithMany(p => p.Reseñas)
                 .HasForeignKey(d => d.IdItem)
                 .HasConstraintName("FK_Reseña_Item");
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Reseñas)
-                .HasForeignKey(d => d.IdUsuario)
+            entity.HasOne(d => d.IdUsuarioReseñadorNavigation).WithMany(p => p.ReseñasHechas)
+                .HasForeignKey(d => d.IdUsuarioReseñador)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Reseña_Usuario");
+                .HasConstraintName("FK_Reseña_Usuario_Reseñador");
+
+            entity.HasOne(d => d.IdUsuarioReseñadoNavigation).WithMany(p => p.ReseñasRecibidas)
+                .HasForeignKey(d => d.IdUsuarioReseñado)
+                .HasConstraintName("FK_Reseña_Usuario_Reseñado");
         });
 
         modelBuilder.Entity<TopRegistro>(entity =>
@@ -246,7 +256,7 @@ public partial class PokemonMarketContext : DbContext
             entity.Property(e => e.Descripcion).HasColumnType("text");
             entity.Property(e => e.EsVerificado).HasDefaultValueSql("'0'");
             entity.Property(e => e.Estado).HasDefaultValueSql("'1'");
-            entity.Property(e => e.EstadoPresencia).HasDefaultValueSql("'1'"); // NO ESTA EN LA ORIGINAL.
+            entity.Property(e => e.EstadoPresencia).HasDefaultValueSql("'1'");
             entity.Property(e => e.FechaRegistro)  
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
@@ -257,6 +267,28 @@ public partial class PokemonMarketContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValueSql("'Usuario'");
             entity.Property(e => e.Telefono).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<Transaccion>(entity =>
+        {
+            entity.HasKey(e => e.IdTransaccion).HasName("PRIMARY");
+            entity.ToTable("transacciones");
+            entity.Property(e => e.Estado).HasMaxLength(50);
+            
+            entity.HasOne(d => d.VendedorNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdVendedor)
+                .HasConstraintName("FK_Transacciones_Vendedor");
+
+            entity.HasOne(d => d.CompradorNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdComprador)
+                .HasConstraintName("FK_Transacciones_Comprador");
+
+            entity.HasOne(d => d.InventarioUserNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdInventarioUser)
+                .HasConstraintName("FK_Transacciones_InventarioUser");
         });
 
         OnModelCreatingPartial(modelBuilder);

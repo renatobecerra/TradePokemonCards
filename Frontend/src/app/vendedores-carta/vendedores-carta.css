@@ -532,6 +532,46 @@
     margin-bottom: -2px;
 }
 
+.seller-actions-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+    margin-top: 0.8rem;
+}
+
+.seller-actions-vertical .btn-profile-public,
+.seller-actions-vertical .btn-contact {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.btn-profile-public {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    padding: 0.75rem 1.6rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-profile-public:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08);
+}
+
 /* Responsive styles */
 @media (max-width: 1024px) {
     .layout-container {
@@ -573,4 +613,234 @@
         flex-direction: row;
         justify-content: space-between;
     }
+}
+
+/* --- BOTÓN DE RESEÑA --- */
+.btn-review {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.6rem;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    transition: all 0.3s ease;
+}
+
+.btn-review:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-3px);
+}
+
+/* --- MODAL DE RESEÑA --- */
+.review-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(11, 11, 14, 0.85); /* Slightly darker overlay */
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.review-modal-content {
+    background: #0f0f13; /* Very dark background */
+    border: 1px solid rgba(255, 255, 255, 0.05); /* Faint border, no neon */
+    border-radius: 8px; /* Slightly rounded */
+    padding: 2.5rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    position: relative;
+}
+
+.review-modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    margin: 0 0 0.5rem 0;
+    color: #fff;
+    font-size: 2.5rem;
+    letter-spacing: 0.02em;
+}
+
+.review-modal-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+.review-modal-subtitle strong {
+    color: #2ecc71; /* Green name */
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 1.8rem;
+}
+
+.form-label {
+    color: #fff;
+    display: block;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 800;
+}
+
+.stars-selector {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.stars-selector .star {
+    color: rgba(255, 255, 255, 0.1);
+    transition: color 0.2s ease;
+}
+
+.stars-selector .star:hover {
+    color: rgba(241, 196, 18, 0.5);
+}
+
+.stars-selector .star.active {
+    color: #f1c40f;
+}
+
+.form-textarea {
+    width: 100%;
+    background: #141419; /* Dark background similar to image */
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Faint border */
+    border-radius: 8px;
+    padding: 1.2rem;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.review-error-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #ff6b6b;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.review-error-msg .error-icon {
+    flex-shrink: 0;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+.btn-cancel {
+    padding: 0.8rem 1.8rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Simple faint border */
+    border-radius: 4px; /* Slight rounding, no clip-path */
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-submit {
+    padding: 0.8rem 2.2rem;
+    background: #2ecc71; /* Bright green */
+    color: #000;
+    border: none;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+    /* Polygon with top-left and bottom-right corners cut */
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: #fff;
+}
+
+.btn-submit:disabled {
+    background: rgba(46, 204, 113, 0.3);
+    color: rgba(0, 0, 0, 0.5);
+    cursor: not-allowed;
+}
+
+/* --- TOAST DE ÉXITO --- */
+.success-toast {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #2ecc71;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    z-index: 9999;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.success-toast .success-icon {
+    flex-shrink: 0;
+}
+
+@keyframes slideInToast {
+    from { transform: translateX(100%) scale(0.9); opacity: 0; }
+    to { transform: translateX(0) scale(1); opacity: 1; }
 }

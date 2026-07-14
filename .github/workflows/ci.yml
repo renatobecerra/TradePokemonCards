@@ -1,0 +1,88 @@
+name: Integración Continua (CI) — TradePokemonCards
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────
+  # JOB 1: Tests del Backend (.NET 8 / xUnit)
+  # Criterios cubiertos: Envío de Mensajes, Buzón de Entrada,
+  #                      Inicio de Sesión, Registro de Usuario
+  # ─────────────────────────────────────────────────────────────────
+  backend-tests:
+    name: Backend CI (.NET 8 — xUnit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código fuente
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar caché de NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restaurar dependencias del Backend
+        run: dotnet restore Backend/Backend.csproj
+
+      - name: Compilar Backend
+        run: dotnet build Backend/Backend.csproj --no-restore --configuration Release
+
+      - name: Restaurar dependencias de Tests
+        run: dotnet restore Backend.Tests/Backend.Tests.csproj
+
+      - name: Compilar proyecto de Tests
+        run: dotnet build Backend.Tests/Backend.Tests.csproj --no-restore --configuration Release
+
+      - name: Ejecutar pruebas unitarias del Backend
+        run: dotnet test Backend.Tests/Backend.Tests.csproj --no-build --configuration Release --verbosity normal
+
+  # ─────────────────────────────────────────────────────────────────
+  # JOB 2: Tests del Frontend (Angular + Vitest)
+  # Criterios cubiertos: Inicio de Sesión, Registro de Usuario,
+  #                      Recuperación de Cuenta, Envío de Mensajes,
+  #                      Buzón de Entrada
+  # ─────────────────────────────────────────────────────────────────
+  frontend-tests:
+    name: Frontend CI (Angular + Vitest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código fuente
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restaurar caché de npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('Frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Instalar dependencias del Frontend
+        working-directory: Frontend
+        run: npm ci
+
+      - name: Compilar Frontend (validación de tipos)
+        working-directory: Frontend
+        run: npm run build
+
+      - name: Ejecutar pruebas unitarias del Frontend (Vitest)
+        working-directory: Frontend
+        run: npm run test:vitest

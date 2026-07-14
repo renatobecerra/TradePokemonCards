@@ -3,17 +3,22 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TcgService } from '../services/tcg.service';
 import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
+import { ResenaService, Resena } from '../services/resena.service';
+import { AuthService } from '../services/auth.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-vendedores-carta',
   standalone: true,
-  imports: [CommonModule, RouterLink, CompNavBarComponent],
+  imports: [CommonModule, RouterLink, CompNavBarComponent, FormsModule],
   templateUrl: './vendedores-carta.html',
   styleUrls: ['./vendedores-carta.css']
 })
 export class VendedoresCartaComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private tcgService = inject(TcgService);
+  private resenaService = inject(ResenaService);
+  private authService = inject(AuthService);
 
   public idTgc = signal<string>('');
   public cardDetails = signal<any>(null);
@@ -21,7 +26,21 @@ export class VendedoresCartaComponent implements OnInit {
   public loading = signal<boolean>(true);
   public error = signal<string | null>(null);
 
+  // Review Modal State
+  public showReviewModal = signal<boolean>(false);
+  public selectedSeller = signal<any>(null);
+  public newReviewRating = signal<number>(5);
+  public newReviewText = signal<string>('');
+  public reviewSubmitting = signal<boolean>(false);
+  public reviewError = signal<string | null>(null);
+  public reviewSuccess = signal<string | null>(null);
+  public currentUser = signal<any>(null);
+
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser.set(user);
+    });
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('idTgc');
       if (id) {

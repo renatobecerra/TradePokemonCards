@@ -1,7 +1,8 @@
 using Backend.Models;
 using Backend.Services;
+using Backend.Services.Interfaces;
+using Backend.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -23,10 +24,48 @@ builder.Services.AddDbContext<PokemonMarketContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IMensajesService, MensajesService>();
+builder.Services.AddScoped<IResenaService, ResenaService>();
+builder.Services.AddScoped<ITransaccionService, TransaccionService>();
+
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PokemonMarketContext>();
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE usuario ADD COLUMN MotivoBaneo VARCHAR(255) NULL;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE usuario ADD COLUMN FechaDesbaneo DATETIME NULL;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE mensajes ADD COLUMN EliminadoPorRemitente TINYINT(1) DEFAULT 0;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE mensajes ADD COLUMN EliminadoPorDestinatario TINYINT(1) DEFAULT 0;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("UPDATE mensajes SET EliminadoPorRemitente = 0 WHERE EliminadoPorRemitente IS NULL;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("UPDATE mensajes SET EliminadoPorDestinatario = 0 WHERE EliminadoPorDestinatario IS NULL;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE transacciones DROP FOREIGN KEY FK_Transacciones_InventarioUser;"); } catch {}
+    try {
+        db.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS transacciones (
+                IdTransaccion INT AUTO_INCREMENT PRIMARY KEY,
+                IdVendedor INT NOT NULL,
+                IdComprador INT NOT NULL,
+                IdInventarioUser INT NOT NULL,
+                Precio INT NULL,
+                Fecha DATETIME NOT NULL,
+                Estado VARCHAR(50) NOT NULL,
+                CONSTRAINT FK_Transacciones_Vendedor FOREIGN KEY (IdVendedor) REFERENCES usuario(ID_Usuarios),
+                CONSTRAINT FK_Transacciones_Comprador FOREIGN KEY (IdComprador) REFERENCES usuario(ID_Usuarios),
+                CONSTRAINT FK_Transacciones_InventarioUser FOREIGN KEY (IdInventarioUser) REFERENCES inventario_usuario(id_inventario_user)
+            );
+        ");
+    } catch (Exception ex) {
+        Console.WriteLine("Error creando tabla transacciones: " + ex.Message);
+    }
+}
 
 app.UseCors("PermitirAngular");
 

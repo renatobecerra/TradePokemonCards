@@ -1,4 +1,4 @@
-/* --- NAVBAR SUPERIOR --- */
+
 .explorar-nav {
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(25px);
@@ -19,7 +19,7 @@
     position: relative;
 }
 
-/* Izquierda: Links */
+
 .nav-left {
     display: flex;
     gap: 3rem;
@@ -57,7 +57,7 @@
     width: 100%;
 }
 
-/* Centro: Logo */
+
 .nav-center-logo {
     position: absolute;
     left: 50%;
@@ -83,7 +83,7 @@
 
 .logo .bracket { color: #2ecc71; }
 
-/* Derecha: Acciones y Perfil */
+
 .nav-right {
     display: flex;
     align-items: center;
@@ -145,7 +145,7 @@
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* Profile Trigger Premium */
+
 .profile-dropdown-wrapper {
     position: relative;
 }
@@ -224,7 +224,7 @@
     color: #2ecc71;
 }
 
-/* Dropdown Menu Premium */
+
 .dropdown-menu-premium {
     position: absolute;
     top: calc(100% + 15px);
@@ -442,4 +442,29 @@
     .nav-center-logo { position: static; transform: none; }
     .nav-container { justify-content: space-between; }
     .nav-left { display: none; }
+}
+
+.messages-icon-btn {
+    position: relative !important;
+}
+
+.nav-unread-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #e74c3c;
+    color: #ffffff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #000000;
+    padding: 0 2px;
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+    z-index: 10;
 }

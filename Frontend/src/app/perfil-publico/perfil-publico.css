@@ -1,0 +1,592 @@
+.public-profile-page {
+  min-height: 100vh;
+  background-color: #000 !important;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-content-wrapper {
+  max-width: 1450px;
+  margin: 0 auto;
+  padding: 3rem 2rem 5rem 2rem;
+}
+
+.back-navigation {
+  margin-bottom: 2.5rem;
+}
+
+.btn-back-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-back-nav svg {
+  transition: transform 0.3s ease;
+}
+
+.btn-back-nav:hover {
+  color: #2ecc71;
+}
+
+.btn-back-nav:hover svg {
+  transform: translateX(-4px);
+}
+
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 0;
+  gap: 1rem;
+}
+
+.loader-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(46, 204, 113, 0.15);
+  border-top-color: #2ecc71;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-panel {
+  background: rgba(231, 76, 60, 0.05);
+  border: 1px solid rgba(231, 76, 60, 0.2);
+  border-radius: 24px;
+  padding: 3rem;
+  text-align: center;
+  backdrop-filter: blur(15px);
+}
+
+.error-msg {
+  color: #e74c3c;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-retry-profile {
+  background: #e74c3c;
+  border: none;
+  color: #ffffff;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+.sidebar-trainer-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 2.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  backdrop-filter: blur(15px);
+}
+
+.trainer-glow {
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background: #2ecc71;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.trainer-avatar-box {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1.8rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  padding: 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.trainer-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.trainer-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #101014;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #2ecc71;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+.presence-dot {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid #000;
+}
+
+.trainer-identity {
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.trainer-identity h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.5rem;
+  line-height: 1.1;
+  margin: 0.5rem 0 0.3rem 0;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.trainer-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.trainer-rating-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 1.8rem;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 0.8rem 1.2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.stars-row {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.star {
+  font-size: 1.3rem;
+}
+
+.star.filled {
+  color: #f1c40f;
+}
+
+.star.empty {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.rating-number {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.trainer-meta-info {
+  width: 100%;
+  margin-bottom: 1.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1rem 0;
+}
+
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.meta-label {
+  font-family: 'Share Tech Mono', monospace;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.meta-value {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.trainer-bio {
+  width: 100%;
+  margin-bottom: 2.2rem;
+}
+
+.bio-title {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  color: #2ecc71;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.6rem;
+}
+
+.bio-text {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.btn-contact-direct {
+  background: #2ecc71;
+  border: none;
+  color: #000;
+  padding: 0.75rem 1.6rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-contact-direct:hover {
+  background: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
+}
+
+.main-details-panel {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  min-height: 500px;
+}
+
+.details-tab-nav {
+  display: flex;
+  gap: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tab-btn:hover {
+  color: #ffffff;
+}
+
+.tab-btn.active {
+  color: #2ecc71;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -11px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #2ecc71;
+}
+
+.empty-tab-state {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.95rem;
+  padding: 5rem 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.catalog-grid-public {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 2rem;
+}
+
+.catalog-card-public {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  transition: all 0.25s ease;
+}
+
+.catalog-card-public:hover {
+  transform: translateY(-4px);
+  border-color: rgba(46, 204, 113, 0.2);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.card-image-wrapper {
+  position: relative;
+  aspect-ratio: 0.72;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.card-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.catalog-card-public:hover .card-image-wrapper img {
+  transform: scale(1.05);
+}
+
+.card-hover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.card-image-wrapper:hover .card-hover-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.btn-overlay-contact {
+  background: #2ecc71;
+  border: none;
+  color: #000;
+  padding: 0.55rem 1.1rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+}
+
+.btn-overlay-contact:hover {
+  background: #fff;
+  color: #000;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5);
+}
+
+.card-info-public {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.card-info-public h4 {
+  margin: 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+}
+
+.card-rarity {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.card-badges-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+
+.badge-state {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-state.state-perfecto { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.15); }
+.badge-state.state-buen { background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.15); }
+.badge-state.state-jugado { background: rgba(241, 196, 15, 0.1); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.15); }
+.badge-state.state-dañado { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.15); }
+
+.badge-price {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  color: #2ecc71;
+  font-weight: 700;
+}
+
+.reviews-feed-public {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.review-item-public {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.review-header-public {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.reviewer-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reviewer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder-review {
+  width: 100%;
+  height: 100%;
+  background: #101014;
+  color: #2ecc71;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.reviewer-meta {
+  flex: 1;
+}
+
+.reviewer-meta h5 {
+  margin: 0 0 0.15rem 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.review-date {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.review-stars-val {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.star-mini {
+  font-size: 0.95rem;
+}
+
+.star-mini.filled {
+  color: #f1c40f;
+}
+
+.star-mini.empty {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.review-comment {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}

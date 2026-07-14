@@ -1,7 +1,8 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { MensajesService } from '../services/mensajes.service';
 
 @Component({
   selector: 'comp-nav-bar',
@@ -10,17 +11,47 @@ import { AuthService } from '../services/auth.service';
   templateUrl: './comp-nav-bar.html',
   styleUrls: ['./comp-nav-bar.css']
 })
-export class CompNavBarComponent implements OnInit {
+export class CompNavBarComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
+  private mensajesService = inject(MensajesService);
   private router = inject(Router);
 
   public currentUser = signal<any>(null);
   public showProfileMenu = signal<boolean>(false);
+  public unreadChatsCount = signal<number>(0);
+
+  private pollInterval: any = null;
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser.set(user);
+      if (user && user.id) {
+        this.mensajesService.actualizarContadorPendientes(user.id);
+        
+        if (this.pollInterval) {
+          clearInterval(this.pollInterval);
+        }
+        this.pollInterval = setInterval(() => {
+          this.mensajesService.actualizarContadorPendientes(user.id);
+        }, 8000);
+      } else {
+        if (this.pollInterval) {
+          clearInterval(this.pollInterval);
+          this.pollInterval = null;
+        }
+        this.unreadChatsCount.set(0);
+      }
     });
+
+    this.mensajesService.unreadChatsCount$.subscribe(count => {
+      this.unreadChatsCount.set(count);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
   }
 
   toggleProfileMenu(event: Event) {
