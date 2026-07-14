@@ -21,6 +21,11 @@ namespace Backend.Controllers
 
         private async Task EnsureReportesTableExists()
         {
+            if (_context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                return;
+            }
+            
             await _context.Database.ExecuteSqlRawAsync(@"
                 CREATE TABLE IF NOT EXISTS reportes (
                     IdReporte INT AUTO_INCREMENT PRIMARY KEY,
