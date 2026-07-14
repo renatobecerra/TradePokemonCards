@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Controllers;
+using Backend.DTOs;
+using Backend.Services.Implementations;
 using Backend.Models;
 using Xunit;
 
@@ -28,7 +30,7 @@ public class AuthControllerTests
     /// (suficiente para tests que no llegan a enviar correo).
     /// </summary>
     private AuthController CrearController(PokemonMarketContext context)
-        => new AuthController(context, emailService: null!);
+        => new AuthController(new AuthService(context, null!));
 
     // ─────────────────────────────────────────────────────────────────────────
     // CA: Inicio de Sesión

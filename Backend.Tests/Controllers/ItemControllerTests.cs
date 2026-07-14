@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Controllers;
+using Backend.DTOs;
+using Backend.Services.Implementations;
 using Backend.Models;
 using Xunit;
 using System;
@@ -66,7 +68,7 @@ public class ItemControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("AgregarAlInventario_Valido");
         SembrarDatos(context);
-        var controller = new InventarioController(context);
+        var controller = new InventarioController(new InventarioService(context));
         var dto = new CrearItemDto
         {
             IdUsuario = 1,
@@ -98,7 +100,7 @@ public class ItemControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("ObtenerInventario_ConCartas");
         SembrarDatos(context);
-        var controller = new InventarioController(context);
+        var controller = new InventarioController(new InventarioService(context));
 
         // Act
         var resultado = await controller.ObtenerInventario(1);
@@ -115,7 +117,7 @@ public class ItemControllerTests
     {
         // Arrange
         var context = CrearContextoEnMemoria("ObtenerInventario_SinCartas");
-        var controller = new InventarioController(context);
+        var controller = new InventarioController(new InventarioService(context));
 
         // Act
         var resultado = await controller.ObtenerInventario(2); // Usuario 2 no existe/no tiene
@@ -135,7 +137,7 @@ public class ItemControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("EliminarItem_Exitoso");
         SembrarDatos(context);
-        var controller = new InventarioController(context);
+        var controller = new InventarioController(new InventarioService(context));
 
         // Act
         var resultado = await controller.EliminarItem(1); // IdInventarioUser = 1
@@ -156,7 +158,7 @@ public class ItemControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("EditarItem_Valido");
         SembrarDatos(context);
-        var controller = new InventarioController(context);
+        var controller = new InventarioController(new InventarioService(context));
         var dto = new CrearItemDto
         {
             Precio = 1500,

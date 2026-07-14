@@ -1,7 +1,8 @@
 using Backend.Models;
 using Backend.Services;
+using Backend.Services.Interfaces;
+using Backend.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -23,6 +24,14 @@ builder.Services.AddDbContext<PokemonMarketContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IMensajesService, MensajesService>();
+builder.Services.AddScoped<IResenaService, ResenaService>();
+builder.Services.AddScoped<ITransaccionService, TransaccionService>();
+
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 

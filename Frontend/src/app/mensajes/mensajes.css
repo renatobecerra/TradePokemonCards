@@ -873,7 +873,8 @@
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.4rem;
   letter-spacing: 0.05em;
-  color: #2ecc71;
+  color: #00ff66;
+  text-shadow: 0 0 5px rgba(0, 255, 102, 0.4);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 0.5rem;
 }
@@ -994,7 +995,8 @@
 .confirmed-details h3 {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.4rem;
-  color: #2ecc71;
+  color: #00ff66;
+  text-shadow: 0 0 5px rgba(0, 255, 102, 0.4);
   margin: 0;
   letter-spacing: 0.05em;
 }

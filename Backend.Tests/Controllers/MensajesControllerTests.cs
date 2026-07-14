@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Controllers;
+using Backend.DTOs;
+using Backend.Services.Implementations;
 using Backend.Models;
 using Xunit;
 
@@ -56,9 +58,9 @@ public class MensajesControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("EnviarMensaje_Valido");
         SembrarDatos(context);
-        var controller = new MensajesController(context);
+        var controller = new MensajesController(new MensajesService(context));
 
-        var dto = new MensajesController.EnviarMensajeDto
+        var dto = new EnviarMensajeDto
         {
             IdRemitente = 1,
             IdDestinatario = 2,
@@ -84,9 +86,9 @@ public class MensajesControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("EnviarMensaje_TextoVacio");
         SembrarDatos(context);
-        var controller = new MensajesController(context);
+        var controller = new MensajesController(new MensajesService(context));
 
-        var dto = new MensajesController.EnviarMensajeDto
+        var dto = new EnviarMensajeDto
         {
             IdRemitente = 1,
             IdDestinatario = 2,
@@ -106,9 +108,9 @@ public class MensajesControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("EnviarMensaje_DestinatarioInexistente");
         SembrarDatos(context);
-        var controller = new MensajesController(context);
+        var controller = new MensajesController(new MensajesService(context));
 
-        var dto = new MensajesController.EnviarMensajeDto
+        var dto = new EnviarMensajeDto
         {
             IdRemitente = 1,
             IdDestinatario = 999, // No existe
@@ -146,7 +148,7 @@ public class MensajesControllerTests
             EliminadoPorDestinatario = false
         });
         context.SaveChanges();
-        var controller = new MensajesController(context);
+        var controller = new MensajesController(new MensajesService(context));
 
         // Act
         var resultado = await controller.GetConversaciones(1);
@@ -164,7 +166,7 @@ public class MensajesControllerTests
         // Arrange — CA: "Si el buzón está vacío, debe mostrar 'Aún no tienes mensajes activos'"
         var context = CrearContextoEnMemoria("GetConversaciones_SinMensajes");
         SembrarDatos(context);
-        var controller = new MensajesController(context);
+        var controller = new MensajesController(new MensajesService(context));
 
         // Act
         var resultado = await controller.GetConversaciones(1);
@@ -194,7 +196,7 @@ public class MensajesControllerTests
             EliminadoPorDestinatario = false
         });
         context.SaveChanges();
-        var controller = new MensajesController(context);
+        var controller = new MensajesController(new MensajesService(context));
 
         // Act
         var resultado = await controller.GetConversaciones(1);
@@ -242,7 +244,7 @@ public class MensajesControllerTests
             }
         );
         context.SaveChanges();
-        var controller = new MensajesController(context);
+        var controller = new MensajesController(new MensajesService(context));
 
         // Act
         var resultado = await controller.GetHistorial(1, 2);

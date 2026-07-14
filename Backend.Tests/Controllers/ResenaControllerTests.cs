@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Backend.Controllers;
+using Backend.DTOs;
+using Backend.Services.Implementations;
 using Backend.Models;
 using System.Linq;
 
@@ -42,7 +44,7 @@ public class ResenaControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("CrearResena_Valida");
         SembrarDatos(context);
-        var controller = new ResenaController(context);
+        var controller = new ResenaController(new ResenaService(context));
         var dto = new ResenaDto
         {
             IdUsuarioResenador = 1,
@@ -80,7 +82,7 @@ public class ResenaControllerTests
         });
         context.SaveChanges();
 
-        var controller = new ResenaController(context);
+        var controller = new ResenaController(new ResenaService(context));
 
         // Act
         var result = await controller.GetResenasPorUsuario(2);

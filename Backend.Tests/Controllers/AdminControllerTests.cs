@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Controllers;
+using Backend.DTOs;
+using Backend.Services.Implementations;
 using Backend.Models;
 using Xunit;
 using System;
@@ -39,7 +41,7 @@ public class AdminControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("CrearReporte_Valido");
         SembrarDatos(context);
-        var controller = new AdminController(context);
+        var controller = new AdminController(new AdminService(context));
         var dto = new ReporteDto
         {
             IdUsuarioReportante = 1,

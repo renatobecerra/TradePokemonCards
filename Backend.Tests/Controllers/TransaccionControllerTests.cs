@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Controllers;
+using Backend.DTOs;
+using Backend.Services.Implementations;
 using Backend.Models;
 using Xunit;
 using System;
@@ -46,9 +48,9 @@ public class TransaccionControllerTests
         // Arrange
         var context = CrearContextoEnMemoria("ConfirmarTrato_Exito");
         SembrarDatos(context);
-        var controller = new TransaccionController(context);
+        var controller = new TransaccionController(new TransaccionService(context));
 
-        var dto = new TransaccionController.ProponerTratoDto
+        var dto = new ProponerTratoDto
         {
             IdVendedor = 1,
             IdComprador = 2,

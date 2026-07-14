@@ -211,12 +211,16 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
 
         if (seleccionadoActual) {
           this.mensajesService.getHistorial(user.id, seleccionadoActual.contacto.id).subscribe({
-            next: (msgs) => {
-              if (msgs.length > this.mensajes().length) {
-                this.shouldScrollToBottom = true;
+              next: (msgs) => {
+                const currentMsgs = this.mensajes();
+                if (
+                  msgs.length !== currentMsgs.length || 
+                  (msgs.length > 0 && currentMsgs.length > 0 && msgs[msgs.length - 1].idMensaje !== currentMsgs[currentMsgs.length - 1].idMensaje)
+                ) {
+                  this.mensajes.set(msgs);
+                  this.shouldScrollToBottom = true;
+                }
               }
-              this.mensajes.set(msgs);
-            }
           });
         }
       }
