@@ -387,6 +387,38 @@ namespace Backend.Controllers
             }
         }
 
+        [HttpGet("publico/{id}")]
+        public async Task<IActionResult> GetPerfilPublico(int id)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios
+                    .Where(u => u.IdUsuarios == id)
+                    .Select(u => new {
+                        id = u.IdUsuarios,
+                        nombre = u.Nombre,
+                        apellido = u.Apellido,
+                        foto = u.ImgPerfil,
+                        bio = u.Descripcion,
+                        calificacion = u.Calificacion,
+                        fechaRegistro = u.FechaRegistro,
+                        estadoPresencia = u.EstadoPresencia
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado" });
+                }
+
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al obtener perfil público: " + ex.Message });
+            }
+        }
+
         [HttpPost("actualizar-perfil")]
         public async Task<IActionResult> ActualizarPerfil([FromBody] ActualizarPerfilDto datos)
         {

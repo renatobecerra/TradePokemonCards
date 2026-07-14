@@ -39,7 +39,8 @@ namespace Backend.Controllers
                 }
 
                 var messages = await _context.Mensajes
-                    .Where(m => m.IdRemitente == usuarioId || m.IdDestinatario == usuarioId)
+                    .Where(m => (m.IdRemitente == usuarioId && m.EliminadoPorRemitente != true) || 
+                                (m.IdDestinatario == usuarioId && m.EliminadoPorDestinatario != true))
                     .ToListAsync();
 
                 var groupResult = messages
@@ -102,8 +103,8 @@ namespace Backend.Controllers
             try
             {
                 var messages = await _context.Mensajes
-                    .Where(m => (m.IdRemitente == usuarioId && m.IdDestinatario == contactoId) ||
-                                (m.IdRemitente == contactoId && m.IdDestinatario == usuarioId))
+                    .Where(m => (m.IdRemitente == usuarioId && m.IdDestinatario == contactoId && m.EliminadoPorRemitente != true) ||
+                                (m.IdRemitente == contactoId && m.IdDestinatario == usuarioId && m.EliminadoPorDestinatario != true))
                     .OrderBy(m => m.Fecha)
                     .ToListAsync();
 
@@ -224,11 +225,25 @@ namespace Backend.Controllers
                                 (m.IdRemitente == contactoId && m.IdDestinatario == usuarioId))
                     .ToListAsync();
 
-                if (messages.Any())
+                foreach (var m in messages)
                 {
-                    _context.Mensajes.RemoveRange(messages);
-                    await _context.SaveChangesAsync();
+                    if (m.IdRemitente == usuarioId)
+                    {
+                        m.EliminadoPorRemitente = true;
+                    }
+                    if (m.IdDestinatario == usuarioId)
+                    {
+                        m.EliminadoPorDestinatario = true;
+                    }
                 }
+
+                var toRemove = messages.Where(m => m.EliminadoPorRemitente && m.EliminadoPorDestinatario).ToList();
+                if (toRemove.Any())
+                {
+                    _context.Mensajes.RemoveRange(toRemove);
+                }
+
+                await _context.SaveChangesAsync();
 
                 return Ok(new { mensaje = "Conversación eliminada con éxito" });
             }

@@ -47,6 +47,8 @@ export class PerfilComponent implements OnInit {
   public currentUser = signal<any>(null);
   public cantidadCartas = signal<number>(0);
   public misResenas = signal<Resena[]>([]);
+  public promedioResenas = signal<number>(0);
+  public promedioEstrellasRedondeado = signal<number>(0);
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -63,7 +65,18 @@ export class PerfilComponent implements OnInit {
 
   cargarResenas(userId: number) {
     this.resenaService.getResenasPorUsuario(userId).subscribe({
-      next: (resenas) => this.misResenas.set(resenas),
+      next: (resenas) => {
+        this.misResenas.set(resenas);
+        if (resenas.length > 0) {
+          const sum = resenas.reduce((acc, r) => acc + r.calificacion, 0);
+          const avg = sum / resenas.length;
+          this.promedioResenas.set(avg);
+          this.promedioEstrellasRedondeado.set(Math.round(avg));
+        } else {
+          this.promedioResenas.set(0);
+          this.promedioEstrellasRedondeado.set(0);
+        }
+      },
       error: (err) => console.error('Error al cargar reseñas:', err)
     });
   }

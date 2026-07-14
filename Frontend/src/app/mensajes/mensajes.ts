@@ -43,8 +43,12 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // --- TRADE MODAL STATE ---
   public showProposeModal = signal<boolean>(false);
-  public inventarioVendedor = signal<any[]>([]);
+  public inventarioMio = signal<any[]>([]);
+  public inventarioContacto = signal<any[]>([]);
+  public proposeRole = signal<'comprar' | 'vender'>('comprar');
+  public proposeMode = signal<'dinero' | 'intercambio'>('dinero');
   public selectedCartaToSell = signal<any>(null);
+  public selectedCartaToOffer = signal<any>(null);
   public proposedPrice = signal<number | null>(null);
   public proposingTrade = signal<boolean>(false);
 
@@ -152,6 +156,31 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
         conv.noLeidos = 0;
         
         this.mensajesService.actualizarContadorPendientes(user.id);
+
+        const params = this.route.snapshot.queryParams;
+        const cardName = params['cardName'];
+        const cardState = params['cardState'];
+        const cardPrice = params['cardPrice'];
+
+        if (cardName) {
+          if (msgs.length === 0) {
+            const autoMsg = `¡Hola! Me interesa tu carta: "${cardName}" (${cardState || 'Buen Estado'}) a ${cardPrice || 'N/A'}.`;
+            this.mensajesService.enviarMensaje(user.id, conv.contacto.id, autoMsg).subscribe({
+              next: (newMsg) => {
+                this.mensajes.update(m => [...m, newMsg]);
+                this.scrollToBottom();
+              }
+            });
+          } else {
+            this.textoMensaje.set(`¡Hola! Estoy interesado en tu carta "${cardName}" (${cardState || 'Buen Estado'}) a ${cardPrice || 'N/A'}.`);
+          }
+
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { cardName: null, cardState: null, cardPrice: null, contactId: null },
+            queryParamsHandling: 'merge'
+          });
+        }
       },
       error: (err) => {
         console.error('Error al cargar historial:', err);
@@ -324,46 +353,88 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
+  getTradeConfirmedData(texto: string): any {
+    try {
+      const jsonStr = texto.replace('[SISTEMA_TRATO_CONFIRMADO]', '');
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
   openProposeModal() {
     const user = this.currentUser();
-    if (!user) return;
-    this.showProposeModal.set(true);
+    const sel = this.seleccionado();
+    if (!user || !sel) return;
     
-    // Fetch user inventory directly via simple HTTP call to inventario endpoint
+    this.proposeRole.set('comprar');
+    this.proposeMode.set('dinero');
+    this.selectedCartaToSell.set(null);
+    this.selectedCartaToOffer.set(null);
+    this.proposedPrice.set(null);
+    this.showProposeModal.set(true);
+
     this.http.get<any[]>(`http://localhost:5210/api/inventario/${user.id}`).subscribe({
-      next: (inv) => {
-        this.inventarioVendedor.set(inv);
-      },
-      error: (err) => {
-        // If the API returns 404 for empty inventory, just set empty array
-        if (err.status === 404) {
-          this.inventarioVendedor.set([]);
-        } else {
-          console.error('Error fetching inventory', err);
-        }
-      }
+      next: (inv) => this.inventarioMio.set(inv),
+      error: () => this.inventarioMio.set([])
+    });
+
+    this.http.get<any[]>(`http://localhost:5210/api/inventario/${sel.contacto.id}`).subscribe({
+      next: (inv) => this.inventarioContacto.set(inv),
+      error: () => this.inventarioContacto.set([])
     });
   }
 
   closeProposeModal() {
     this.showProposeModal.set(false);
     this.selectedCartaToSell.set(null);
+    this.selectedCartaToOffer.set(null);
     this.proposedPrice.set(null);
   }
 
   submitProposeTrade() {
     const user = this.currentUser();
     const sel = this.seleccionado();
-    const carta = this.selectedCartaToSell();
-    
-    if (!user || !sel || !carta) return;
+    const mainCard = this.selectedCartaToSell();
+    if (!user || !sel || !mainCard) return;
 
     this.proposingTrade.set(true);
+
+    let sellerId = user.id;
+    let buyerId = sel.contacto.id;
+    let mainCardId = mainCard.idInventarioUser;
+    let swapCardId: number | null = null;
+    let price: number | null = null;
+
+    if (this.proposeRole() === 'comprar') {
+      sellerId = sel.contacto.id;
+      buyerId = user.id;
+      mainCardId = mainCard.idInventarioUser;
+      if (this.proposeMode() === 'intercambio') {
+        const swapCard = this.selectedCartaToOffer();
+        if (swapCard) swapCardId = swapCard.idInventarioUser;
+      } else {
+        price = mainCard.precio;
+      }
+    } else {
+      sellerId = user.id;
+      buyerId = sel.contacto.id;
+      mainCardId = mainCard.idInventarioUser;
+      if (this.proposeMode() === 'intercambio') {
+        const swapCard = this.selectedCartaToOffer();
+        if (swapCard) swapCardId = swapCard.idInventarioUser;
+      } else {
+        price = this.proposedPrice();
+      }
+    }
+
     const dto: ProponerTratoDto = {
-      idVendedor: user.id,
-      idComprador: sel.contacto.id,
-      idInventarioUser: carta.idInventarioUser,
-      precio: this.proposedPrice()
+      idVendedor: sellerId,
+      idComprador: buyerId,
+      idInventarioUser: mainCardId,
+      precio: price,
+      idInventarioUserIntercambio: swapCardId,
+      idProponente: user.id
     };
 
     this.transaccionService.proponerTrato(dto).subscribe({
@@ -383,29 +454,40 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
   confirmarTrato(msg: any, tradeData: any) {
     const user = this.currentUser();
     const sel = this.seleccionado();
-    if (!user || !sel) return;
+    if (!user || !sel || !tradeData) return;
 
     const dto: ProponerTratoDto = {
-      idVendedor: sel.contacto.id, // remitente del mensaje
-      idComprador: user.id, // el que acepta
+      idVendedor: tradeData.idVendedor,
+      idComprador: tradeData.idComprador,
       idInventarioUser: tradeData.idInventarioUser,
-      precio: tradeData.precio
+      precio: tradeData.precio,
+      idInventarioUserIntercambio: tradeData.idInventarioUserIntercambio
     };
 
     this.transaccionService.confirmarTrato(dto).subscribe({
       next: () => {
         this.actualizarChatsYMensajes();
-        
-        // Open review modal instantly for the buyer
-        this.selectedReviewSeller.set(sel.contacto);
-        this.newReviewRating.set(5);
-        this.newReviewText.set('');
-        this.showReviewModal.set(true);
+        alert('¡Trato confirmado exitosamente!');
       },
       error: (err) => {
         console.error('Error al confirmar trato', err);
         alert(err.error?.message || 'Error al confirmar la transacción.');
       }
+    });
+  }
+
+  openDirectReviewModal(targetUserId: number) {
+    if (!targetUserId) return;
+    this.mensajesService.getUsuarioDetalle(targetUserId).subscribe({
+      next: (userDetalle) => {
+        this.selectedReviewSeller.set(userDetalle);
+        this.newReviewRating.set(5);
+        this.newReviewText.set('');
+        this.reviewError.set(null);
+        this.reviewSuccess.set(null);
+        this.showReviewModal.set(true);
+      },
+      error: (err) => console.error('Error fetching target user details for review', err)
     });
   }
 

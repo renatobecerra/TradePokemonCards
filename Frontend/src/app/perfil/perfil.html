@@ -29,6 +29,11 @@
             </div>
             <h2 class="sidebar-name">{{ currentUser()?.nombre }} {{ currentUser()?.apellido }}</h2>
             <span class="sidebar-role">{{ currentUser()?.rol || 'Coleccionista' }}</span>
+            <div class="sidebar-stars" style="color: #f1c40f; font-size: 1.1rem; display: flex; gap: 0.15rem; justify-content: center; margin-top: 0.5rem;">
+              @for (star of [1,2,3,4,5]; track $index) {
+                <span [style.opacity]="star <= promedioEstrellasRedondeado() ? 1 : 0.25">★</span>
+              }
+            </div>
           </div>
 
           <div class="sidebar-stats">
@@ -37,7 +42,7 @@
               <span class="stat-label">Cantidad de Cartas</span>
             </div>
             <div class="stat-item">
-              <span class="stat-val">5.0</span>
+              <span class="stat-val">{{ promedioResenas() | number:'1.1-1' }}</span>
               <span class="stat-label">Promedio de Reseñas</span>
             </div>
           </div>

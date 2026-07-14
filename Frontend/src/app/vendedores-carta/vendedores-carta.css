@@ -532,6 +532,46 @@
     margin-bottom: -2px;
 }
 
+.seller-actions-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+    margin-top: 0.8rem;
+}
+
+.seller-actions-vertical .btn-profile-public,
+.seller-actions-vertical .btn-contact {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.btn-profile-public {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    padding: 0.75rem 1.6rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-profile-public:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08);
+}
+
 /* Responsive styles */
 @media (max-width: 1024px) {
     .layout-container {

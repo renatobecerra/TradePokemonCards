@@ -156,44 +156,63 @@
             } @else {
               <div class="messages-list">
                 @for (msg of mensajes(); track msg.idMensaje) {
-                  <div class="message-row" [class.sent]="msg.idRemitente === currentUser()?.id">
-                    <div class="message-bubble" [title]="formatearHoraCompleta(msg.fecha)">
+                  <div class="message-row" [class.sent]="msg.idRemitente === currentUser()?.id" [class.system-card-row]="isTradeProposal(msg.texto) || isTradeConfirmed(msg.texto)">
+                    <div class="message-bubble" [class.system-card-bubble]="isTradeProposal(msg.texto) || isTradeConfirmed(msg.texto)" [title]="formatearHoraCompleta(msg.fecha)">
                       <div class="message-content">
                         @if (esImagen(msg.texto)) {
                           <img [src]="msg.texto" alt="Imagen adjunta" class="chat-image-attachment" (load)="scrollToBottom()">
                         } @else if (isTradeProposal(msg.texto)) {
-                          <div class="trade-proposal-bubble">
-                            <div class="trade-header">
-                              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <div class="trade-proposal-card">
+                            <div class="trade-card-header">
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2ecc71" stroke-width="2.5">
                                 <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                                 <path d="M2 17l10 5 10-5"></path>
                                 <path d="M2 12l10 5 10-5"></path>
                               </svg>
-                              <h4>PROPUESTA DE INTERCAMBIO</h4>
+                              <span>PROPUESTA DE TRATO</span>
                             </div>
-                            <div class="trade-body">
-                              <p><strong>Carta:</strong> {{ getTradeProposalData(msg.texto)?.nombreCarta }}</p>
-                              @if (getTradeProposalData(msg.texto)?.precio) {
-                                <p><strong>Precio:</strong> {{ getTradeProposalData(msg.texto)?.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
+                            <div class="trade-card-body">
+                              <div class="trade-item">
+                                <span class="trade-label">Transferir Carta:</span>
+                                <span class="trade-value">{{ getTradeProposalData(msg.texto)?.nombreCarta }}</span>
+                              </div>
+                              @if (getTradeProposalData(msg.texto)?.nombreCartaIntercambio) {
+                                <div class="trade-item exchange-item">
+                                  <span class="trade-label">A cambio de:</span>
+                                  <span class="trade-value text-accent">{{ getTradeProposalData(msg.texto)?.nombreCartaIntercambio }}</span>
+                                </div>
                               } @else {
-                                <p><strong>Precio:</strong> Intercambio</p>
+                                <div class="trade-item price-item">
+                                  <span class="trade-label">A cambio de:</span>
+                                  <span class="trade-value text-accent">
+                                    {{ getTradeProposalData(msg.texto)?.precio ? (getTradeProposalData(msg.texto)?.precio | currency:'CLP':'symbol-narrow':'1.0-0') : 'Gratis' }}
+                                  </span>
+                                </div>
                               }
                             </div>
-                            @if (msg.idRemitente !== currentUser()?.id) {
-                              <button class="btn-confirm-trade" (click)="confirmarTrato(msg, getTradeProposalData(msg.texto))">ACEPTAR TRATO</button>
-                            } @else {
-                              <span class="trade-pending-text">Esperando respuesta...</span>
-                            }
+                            <div class="trade-card-footer">
+                              @if (msg.idRemitente !== currentUser()?.id) {
+                                <button class="btn-trade-accept" (click)="confirmarTrato(msg, getTradeProposalData(msg.texto))">ACEPTAR TRATO</button>
+                              } @else {
+                                <span class="trade-waiting">Esperando respuesta...</span>
+                              }
+                            </div>
                           </div>
                         } @else if (isTradeConfirmed(msg.texto)) {
-                          <div class="trade-confirmed-bubble">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" class="success-icon">
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            <div>
-                              <h4>TRATO CONFIRMADO</h4>
-                              <p>El trato ha sido cerrado exitosamente.</p>
+                          <div class="trade-confirmed-card">
+                            <div class="confirmed-icon-wrapper">
+                              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#2ecc71" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            </div>
+                            <div class="confirmed-details">
+                              <h3>TRATO CERRADO CON ÉXITO</h3>
+                              <p>La carta ha sido transferida y el inventario actualizado.</p>
+                              @if (getTradeConfirmedData(msg.texto)?.idComprador === currentUser()?.id) {
+                                <button class="btn-confirmed-review" (click)="openDirectReviewModal(getTradeConfirmedData(msg.texto)?.idVendedor)">DEJAR RESEÑA AL VENDEDOR</button>
+                              } @else if (getTradeConfirmedData(msg.texto)?.idVendedor === currentUser()?.id) {
+                                <button class="btn-confirmed-review" (click)="openDirectReviewModal(getTradeConfirmedData(msg.texto)?.idComprador)">DEJAR RESEÑA AL COMPRADOR</button>
+                              }
                             </div>
                           </div>
                         } @else {
@@ -263,32 +282,108 @@
     </div>
   </main>
 
-  <!-- MODAL PARA CERRAR TRATO -->
   @if (showProposeModal()) {
     <div class="review-modal-overlay">
-      <div class="review-modal-content">
+      <div class="review-modal-content close-deal-modal">
         <h2 class="review-modal-title">Cerrar Trato</h2>
-        <p class="review-modal-subtitle">Selecciona la carta que vas a vender/intercambiar con <strong>{{ seleccionado()?.contacto?.nombre }}</strong>.</p>
+        <p class="review-modal-subtitle">Establece las condiciones para concretar la transacción con <strong>{{ seleccionado()?.contacto?.nombre }}</strong>.</p>
         
         <div class="form-group">
-          <label class="form-label">Carta a Transferir</label>
+          <label class="form-label">¿Qué deseas proponer?</label>
+          <div class="role-toggle-group">
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeRole() === 'comprar'" 
+              (click)="proposeRole.set('comprar'); selectedCartaToSell.set(null); selectedCartaToOffer.set(null);"
+            >
+              Comprar carta de {{ seleccionado()?.contacto?.nombre }}
+            </button>
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeRole() === 'vender'" 
+              (click)="proposeRole.set('vender'); selectedCartaToSell.set(null); selectedCartaToOffer.set(null);"
+            >
+              Vender una de mis cartas
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            {{ proposeRole() === 'comprar' ? 'Carta que deseas comprar' : 'Tu carta a vender' }}
+          </label>
           <select class="form-select" [(ngModel)]="selectedCartaToSell">
             <option [ngValue]="null">Selecciona una carta...</option>
-            @for (item of inventarioVendedor(); track item.idInventarioUser) {
-              <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+            @if (proposeRole() === 'comprar') {
+              @for (item of inventarioContacto(); track item.idInventarioUser) {
+                <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+              }
+            } @else {
+              @for (item of inventarioMio(); track item.idInventarioUser) {
+                <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+              }
             }
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Precio Acordado (Opcional)</label>
-          <input type="number" class="form-input" [(ngModel)]="proposedPrice" placeholder="Ej: 5000">
-          <small class="form-help">Si es un intercambio por otra carta, déjalo en blanco.</small>
+          <label class="form-label">Modalidad del Trato</label>
+          <div class="role-toggle-group">
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeMode() === 'dinero'" 
+              (click)="proposeMode.set('dinero'); selectedCartaToOffer.set(null);"
+            >
+              Venta (Dinero)
+            </button>
+            <button 
+              type="button" 
+              class="btn-role-toggle" 
+              [class.active]="proposeMode() === 'intercambio'" 
+              (click)="proposeMode.set('intercambio'); proposedPrice.set(null);"
+            >
+              Trueque (Intercambio)
+            </button>
+          </div>
         </div>
+
+        @if (proposeMode() === 'dinero') {
+          <div class="form-group">
+            <label class="form-label">Precio</label>
+            @if (proposeRole() === 'comprar') {
+              <div class="value-box readonly" style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-family: 'Share Tech Mono', monospace; font-size: 1.1rem; color: #2ecc71;">
+                {{ selectedCartaToSell()?.precio ? (selectedCartaToSell()?.precio | currency:'CLP':'symbol-narrow':'1.0-0') : '$0 CLP' }}
+              </div>
+            } @else {
+              <input type="number" class="form-input" [(ngModel)]="proposedPrice" placeholder="Ej: 5000">
+            }
+          </div>
+        } @else {
+          <div class="form-group">
+            <label class="form-label">
+              {{ proposeRole() === 'comprar' ? 'Tu carta que das a cambio' : 'Carta de ellos que recibes a cambio' }}
+            </label>
+            <select class="form-select" [(ngModel)]="selectedCartaToOffer">
+              <option [ngValue]="null">Selecciona una carta para el trueque...</option>
+              @if (proposeRole() === 'comprar') {
+                @for (item of inventarioMio(); track item.idInventarioUser) {
+                  <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+                }
+              } @else {
+                @for (item of inventarioContacto(); track item.idInventarioUser) {
+                  <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+                }
+              }
+            </select>
+          </div>
+        }
 
         <div class="modal-actions">
           <button class="btn-cancel" (click)="closeProposeModal()" [disabled]="proposingTrade()">CANCELAR</button>
-          <button class="btn-submit" (click)="submitProposeTrade()" [disabled]="proposingTrade() || !selectedCartaToSell()">
+          <button class="btn-submit" (click)="submitProposeTrade()" [disabled]="proposingTrade() || !selectedCartaToSell() || (proposeMode() === 'intercambio' && !selectedCartaToOffer())">
             {{ proposingTrade() ? 'ENVIANDO...' : 'PROPONER TRATO' }}
           </button>
         </div>

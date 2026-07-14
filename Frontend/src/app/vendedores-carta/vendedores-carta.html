@@ -120,15 +120,27 @@
                     <span class="price-label">Precio Propuesto</span>
                     <span class="price-value-seller">{{ seller.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
                   </div>
-
-                  <div style="display: flex; gap: 0.5rem; width: 100%;">
-                    <button class="btn-contact" style="flex: 1;" [routerLink]="['/mensajes']" [queryParams]="{ contactId: seller.idUsuario }">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                      </svg>
-                      CONTACTAR
-                    </button>
-                  </div>
+                  @if (seller.idUsuario !== currentUser()?.id) {
+                    <div class="seller-actions-vertical">
+                      <button class="btn-profile-public" [routerLink]="['/perfil-publico', seller.idUsuario]">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        VER PERFIL
+                      </button>
+                      <button class="btn-contact" [routerLink]="['/mensajes']" [queryParams]="{ contactId: seller.idUsuario, cardName: cardDetails()?.name, cardState: seller.estado, cardPrice: (seller.precio | currency:'CLP':'symbol-narrow':'1.0-0') }">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        CONTACTAR
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="own-card-badge" style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: rgba(255, 255, 255, 0.4); border: 1px dashed rgba(255, 255, 255, 0.15); padding: 0.4rem 0.8rem; border-radius: 6px; display: inline-block; width: 100%; text-align: center; margin-top: 0.5rem;">
+                      TU PUBLICACIÓN
+                    </span>
+                  }
                 </div>
               </div>
             }

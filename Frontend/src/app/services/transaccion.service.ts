@@ -7,6 +7,8 @@ export interface ProponerTratoDto {
   idComprador: number;
   idInventarioUser: number;
   precio: number | null;
+  idInventarioUserIntercambio?: number | null;
+  idProponente?: number;
 }
 
 @Injectable({

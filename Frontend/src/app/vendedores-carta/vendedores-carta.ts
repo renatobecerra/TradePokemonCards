@@ -34,8 +34,13 @@ export class VendedoresCartaComponent implements OnInit {
   public reviewSubmitting = signal<boolean>(false);
   public reviewError = signal<string | null>(null);
   public reviewSuccess = signal<string | null>(null);
+  public currentUser = signal<any>(null);
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser.set(user);
+    });
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('idTgc');
       if (id) {

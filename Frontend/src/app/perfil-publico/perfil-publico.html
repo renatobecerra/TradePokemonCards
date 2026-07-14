@@ -1,0 +1,174 @@
+<div class="public-profile-page">
+  <comp-nav-bar></comp-nav-bar>
+
+  <main class="profile-content-wrapper">
+    <div class="back-navigation">
+      <a routerLink="/explorar" class="btn-back-nav">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        VOLVER AL MERCADO
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="loader-container">
+        <div class="loader-spinner"></div>
+        <p>Cargando perfil del entrenador...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-panel">
+        <p class="error-msg">{{ error() }}</p>
+        <button class="btn-retry-profile" routerLink="/explorar">VOLVER</button>
+      </div>
+    } @else {
+      <div class="profile-layout">
+        <aside class="sidebar-trainer-card">
+          <div class="trainer-glow"></div>
+          
+          <div class="trainer-avatar-box">
+            @if (usuario()?.foto) {
+              <img [src]="usuario()?.foto" alt="Avatar" class="trainer-avatar">
+            } @else {
+              <div class="trainer-avatar-placeholder">{{ usuario()?.nombre?.charAt(0) }}</div>
+            }
+            <div class="presence-dot" [style.background]="getPresenceColor(usuario()?.estadoPresencia)"></div>
+          </div>
+
+          <div class="trainer-identity">
+            <h2>{{ usuario()?.nombre }} {{ usuario()?.apellido }}</h2>
+            <span class="trainer-status" [style.color]="getPresenceColor(usuario()?.estadoPresencia)">
+              {{ getPresenceLabel(usuario()?.estadoPresencia) }}
+            </span>
+          </div>
+
+          <div class="trainer-rating-summary">
+            <div class="stars-row">
+              @for (star of getStarsArray(usuario()?.calificacion); track $index) {
+                <span class="star filled">★</span>
+              }
+              @for (star of getEmptyStarsArray(usuario()?.calificacion); track $index) {
+                <span class="star empty">★</span>
+              }
+            </div>
+            <span class="rating-number">{{ (usuario()?.calificacion || 0) | number:'1.1-1' }} de 5.0</span>
+          </div>
+
+          <div class="trainer-meta-info">
+            <div class="meta-item">
+              <span class="meta-label">Miembro desde</span>
+              <span class="meta-value">{{ usuario()?.fechaRegistro | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="trainer-bio">
+            <span class="bio-title">BIOGRAFÍA</span>
+            <p class="bio-text">{{ usuario()?.bio || 'Este entrenador aún no ha escrito una biografía.' }}</p>
+          </div>
+
+          <button class="btn-contact-direct" [routerLink]="['/mensajes']" [queryParams]="{ contactId: usuario()?.id }">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            ENVIAR MENSAJE
+          </button>
+        </aside>
+
+        <section class="main-details-panel">
+          <nav class="details-tab-nav">
+            <button 
+              class="tab-btn" 
+              [class.active]="activeTab() === 'catalogo'" 
+              (click)="activeTab.set('catalogo')"
+            >
+              CATÁLOGO DE CARTAS ({{ catalogo().length }})
+            </button>
+            <button 
+              class="tab-btn" 
+              [class.active]="activeTab() === 'resenas'" 
+              (click)="activeTab.set('resenas')"
+            >
+              RESEÑAS RECIBIDAS ({{ resenas().length }})
+            </button>
+          </nav>
+
+          <div class="tab-content-area">
+            @if (activeTab() === 'catalogo') {
+              @if (catalogo().length === 0) {
+                <div class="empty-tab-state">
+                  <p>Este entrenador no tiene cartas publicadas en su catálogo actualmente.</p>
+                </div>
+              } @else {
+                <div class="catalog-grid-public">
+                  @for (item of catalogo(); track item.idInventarioUser) {
+                    <div class="catalog-card-public">
+                      <div class="card-image-wrapper">
+                        <img [src]="item.imgLink ? (item.imgLink.endsWith('.jpg') || item.imgLink.endsWith('.png') ? item.imgLink : item.imgLink + '/high.jpg') : ''" [alt]="item.nombre">
+                        @if (usuario()?.id !== currentUser()?.id) {
+                          <div class="card-hover-overlay">
+                            <button class="btn-overlay-contact" [routerLink]="['/mensajes']" [queryParams]="{ contactId: usuario()?.id, cardName: item.nombre, cardState: item.estado, cardPrice: (item.precio | currency:'CLP':'symbol-narrow':'1.0-0') }">
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                              </svg>
+                              CONTACTAR
+                            </button>
+                          </div>
+                        }
+                      </div>
+                      <div class="card-info-public">
+                        <h4>{{ item.nombre }}</h4>
+                        <span class="card-rarity">{{ item.rareza || 'Común' }}</span>
+                        <div class="card-badges-row">
+                          <span class="badge-state" [class]="'state-' + item.estado.toLowerCase()">{{ item.estado }}</span>
+                          <span class="badge-price">{{ item.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            } @else {
+              @if (resenas().length === 0) {
+                <div class="empty-tab-state">
+                  <p>Este entrenador aún no ha recibido reseñas de otros miembros.</p>
+                </div>
+              } @else {
+                <div class="reviews-feed-public">
+                  @for (rev of resenas(); track rev.resenaId || $index) {
+                    <div class="review-item-public">
+                      <div class="review-header-public">
+                        <div class="reviewer-avatar">
+                          @if (rev.imgResenador) {
+                            <img [src]="rev.imgResenador" alt="Avatar">
+                          } @else {
+                            <div class="avatar-placeholder-review">
+                              {{ rev.nombreResenador?.charAt(0) || 'U' }}
+                            </div>
+                          }
+                        </div>
+                        <div class="reviewer-meta">
+                          <h5>{{ rev.nombreResenador }}</h5>
+                          <span class="review-date">{{ rev.fecha | date:'dd/MM/yyyy' }}</span>
+                        </div>
+                        <div class="review-stars-val">
+                          @for (star of getStarsArray(rev.calificacion); track $index) {
+                            <span class="star-mini filled">★</span>
+                          }
+                          @for (star of getEmptyStarsArray(rev.calificacion); track $index) {
+                            <span class="star-mini empty">★</span>
+                          }
+                        </div>
+                      </div>
+                      <p class="review-comment">{{ rev.texto }}</p>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </section>
+      </div>
+    }
+  </main>
+</div>

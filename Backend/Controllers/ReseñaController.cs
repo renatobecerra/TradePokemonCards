@@ -92,11 +92,14 @@ namespace Backend.Controllers
 
                 // NUEVA VALIDACIÓN: Verificar que exista una transacción completada entre ambos
                 var transaccionExistente = await _context.Transacciones
-                    .AnyAsync(t => t.IdVendedor == dto.IdUsuarioResenado && t.IdComprador == dto.IdUsuarioResenador && t.Estado == "Completado");
+                    .AnyAsync(t => 
+                        (t.IdVendedor == dto.IdUsuarioResenado && t.IdComprador == dto.IdUsuarioResenador && t.Estado == "Completado") ||
+                        (t.IdVendedor == dto.IdUsuarioResenador && t.IdComprador == dto.IdUsuarioResenado && t.Estado == "Completado")
+                    );
                 
                 if (!transaccionExistente)
                 {
-                    return BadRequest(new { message = "No puedes reseñar a un vendedor con el que no has completado un trato." });
+                    return BadRequest(new { message = "No puedes reseñar a este usuario porque no registran tratos completados en común." });
                 }
             }
 

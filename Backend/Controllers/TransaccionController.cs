@@ -22,12 +22,13 @@ public class TransaccionController : ControllerBase
         public int IdComprador { get; set; }
         public int IdInventarioUser { get; set; }
         public int? Precio { get; set; }
+        public int? IdInventarioUserIntercambio { get; set; }
+        public int IdProponente { get; set; }
     }
 
     [HttpPost("proponer")]
     public async Task<IActionResult> ProponerTrato([FromBody] ProponerTratoDto dto)
     {
-        // 1. Validate InventarioUser exists
         var invUser = await _context.InventarioUsuarios
             .Include(i => i.IdItemNavigation)
             .FirstOrDefaultAsync(i => i.IdInventarioUser == dto.IdInventarioUser && i.IdUsuario == dto.IdVendedor);
@@ -35,24 +36,35 @@ public class TransaccionController : ControllerBase
         if (invUser == null)
             return NotFound(new { message = "Carta no encontrada en el inventario del vendedor." });
 
-        // 2. Format interactive message payload
+        string? nombreCartaIntercambio = null;
+        if (dto.IdInventarioUserIntercambio.HasValue && dto.IdInventarioUserIntercambio.Value > 0)
+        {
+            var swapCard = await _context.InventarioUsuarios
+                .Include(i => i.IdItemNavigation)
+                .FirstOrDefaultAsync(i => i.IdInventarioUser == dto.IdInventarioUserIntercambio.Value && i.IdUsuario == dto.IdComprador);
+            nombreCartaIntercambio = swapCard?.IdItemNavigation?.Nombre;
+        }
+
         var payload = new
         {
             idInventarioUser = dto.IdInventarioUser,
             precio = dto.Precio,
-            nombreCarta = invUser.IdItemNavigation?.Nombre ?? "Carta Desconocida"
+            nombreCarta = invUser.IdItemNavigation?.Nombre ?? "Carta Desconocida",
+            idInventarioUserIntercambio = dto.IdInventarioUserIntercambio,
+            nombreCartaIntercambio = nombreCartaIntercambio,
+            idVendedor = dto.IdVendedor,
+            idComprador = dto.IdComprador
         };
         string payloadJson = JsonSerializer.Serialize(payload);
         string mensajeTexto = $"[SISTEMA_PROPUESTA_TRATO]{payloadJson}";
 
-        // 3. Save as a message from Vendedor to Comprador
         var mensaje = new Mensaje
         {
-            IdRemitente = dto.IdVendedor,
-            IdDestinatario = dto.IdComprador,
+            IdRemitente = dto.IdProponente,
+            IdDestinatario = dto.IdProponente == dto.IdVendedor ? dto.IdComprador : dto.IdVendedor,
             IdItem = invUser.IdItem,
             Texto = mensajeTexto,
-            Estado = false, // Not read yet
+            Estado = false,
             Fecha = DateTime.UtcNow
         };
 
@@ -65,14 +77,12 @@ public class TransaccionController : ControllerBase
     [HttpPost("confirmar")]
     public async Task<IActionResult> ConfirmarTrato([FromBody] ProponerTratoDto dto)
     {
-        // 1. Verify card is still available
         var invUser = await _context.InventarioUsuarios
             .FirstOrDefaultAsync(i => i.IdInventarioUser == dto.IdInventarioUser && i.IdUsuario == dto.IdVendedor);
 
         if (invUser == null || invUser.Cantidad <= 0)
             return BadRequest(new { message = "La carta ya no está disponible." });
 
-        // 2. Create the Transaccion record
         var transaccion = new Transaccion
         {
             IdVendedor = dto.IdVendedor,
@@ -85,7 +95,6 @@ public class TransaccionController : ControllerBase
 
         _context.Transacciones.Add(transaccion);
 
-        // 3. Deduct stock from seller
         invUser.Cantidad -= 1;
         if (invUser.Cantidad <= 0)
         {
@@ -96,7 +105,6 @@ public class TransaccionController : ControllerBase
             _context.InventarioUsuarios.Update(invUser);
         }
 
-        // 4. Add stock to buyer's inventory
         var invBuyer = await _context.InventarioUsuarios
             .FirstOrDefaultAsync(i => i.IdUsuario == dto.IdComprador && i.IdItem == invUser.IdItem && i.EstadoFisico == invUser.EstadoFisico);
 
@@ -117,12 +125,55 @@ public class TransaccionController : ControllerBase
             _context.InventarioUsuarios.Add(newInvBuyer);
         }
 
-        // Add a system message confirming the trade
+        if (dto.IdInventarioUserIntercambio.HasValue && dto.IdInventarioUserIntercambio.Value > 0)
+        {
+            var invBuyerCard = await _context.InventarioUsuarios
+                .FirstOrDefaultAsync(i => i.IdInventarioUser == dto.IdInventarioUserIntercambio.Value && i.IdUsuario == dto.IdComprador);
+            if (invBuyerCard != null && invBuyerCard.Cantidad > 0)
+            {
+                invBuyerCard.Cantidad -= 1;
+                if (invBuyerCard.Cantidad <= 0)
+                {
+                    _context.InventarioUsuarios.Remove(invBuyerCard);
+                }
+                else
+                {
+                    _context.InventarioUsuarios.Update(invBuyerCard);
+                }
+
+                var invSellerCard = await _context.InventarioUsuarios
+                    .FirstOrDefaultAsync(i => i.IdUsuario == dto.IdVendedor && i.IdItem == invBuyerCard.IdItem && i.EstadoFisico == invBuyerCard.EstadoFisico);
+                if (invSellerCard != null)
+                {
+                    invSellerCard.Cantidad += 1;
+                    _context.InventarioUsuarios.Update(invSellerCard);
+                }
+                else
+                {
+                    var newInvSellerCard = new InventarioUsuario
+                    {
+                        IdUsuario = dto.IdVendedor,
+                        IdItem = invBuyerCard.IdItem,
+                        EstadoFisico = invBuyerCard.EstadoFisico,
+                        Cantidad = 1
+                    };
+                    _context.InventarioUsuarios.Add(newInvSellerCard);
+                }
+            }
+        }
+
+        var payloadConfirmacion = new
+        {
+            idVendedor = dto.IdVendedor,
+            idComprador = dto.IdComprador
+        };
+        string payloadConfirmacionJson = JsonSerializer.Serialize(payloadConfirmacion);
+
         var mensajeConfirmacion = new Mensaje
         {
             IdRemitente = dto.IdComprador,
             IdDestinatario = dto.IdVendedor,
-            Texto = "[SISTEMA_TRATO_CONFIRMADO]El trato ha sido confirmado por el comprador.",
+            Texto = $"[SISTEMA_TRATO_CONFIRMADO]{payloadConfirmacionJson}",
             Estado = false,
             Fecha = DateTime.UtcNow
         };

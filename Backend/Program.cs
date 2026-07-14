@@ -33,6 +33,9 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<PokemonMarketContext>();
     try { db.Database.ExecuteSqlRaw("ALTER TABLE usuario ADD COLUMN MotivoBaneo VARCHAR(255) NULL;"); } catch {}
     try { db.Database.ExecuteSqlRaw("ALTER TABLE usuario ADD COLUMN FechaDesbaneo DATETIME NULL;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE mensajes ADD COLUMN EliminadoPorRemitente TINYINT(1) DEFAULT 0;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE mensajes ADD COLUMN EliminadoPorDestinatario TINYINT(1) DEFAULT 0;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE transacciones DROP FOREIGN KEY FK_Transacciones_InventarioUser;"); } catch {}
     try {
         db.Database.ExecuteSqlRaw(@"
             CREATE TABLE IF NOT EXISTS transacciones (
