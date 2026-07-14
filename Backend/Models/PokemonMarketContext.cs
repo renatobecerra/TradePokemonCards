@@ -34,6 +34,8 @@ public partial class PokemonMarketContext : DbContext
 
     public virtual DbSet<Reporte> Reportes { get; set; }
 
+    public virtual DbSet<Transaccion> Transacciones { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         
@@ -265,6 +267,28 @@ public partial class PokemonMarketContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValueSql("'Usuario'");
             entity.Property(e => e.Telefono).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<Transaccion>(entity =>
+        {
+            entity.HasKey(e => e.IdTransaccion).HasName("PRIMARY");
+            entity.ToTable("transacciones");
+            entity.Property(e => e.Estado).HasMaxLength(50);
+            
+            entity.HasOne(d => d.VendedorNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdVendedor)
+                .HasConstraintName("FK_Transacciones_Vendedor");
+
+            entity.HasOne(d => d.CompradorNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdComprador)
+                .HasConstraintName("FK_Transacciones_Comprador");
+
+            entity.HasOne(d => d.InventarioUserNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdInventarioUser)
+                .HasConstraintName("FK_Transacciones_InventarioUser");
         });
 
         OnModelCreatingPartial(modelBuilder);

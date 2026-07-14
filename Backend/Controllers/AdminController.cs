@@ -224,7 +224,7 @@ namespace Backend.Controllers
                 var notifs = await _context.Notificaciones.Where(n => n.IdUserDestinatario == idUsuario).ToListAsync();
                 _context.Notificaciones.RemoveRange(notifs);
 
-                var reviews = await _context.Reseñas.Where(r => r.IdUsuario == idUsuario).ToListAsync();
+                var reviews = await _context.Reseñas.Where(r => r.IdUsuarioReseñador == idUsuario || r.IdUsuarioReseñado == idUsuario).ToListAsync();
                 _context.Reseñas.RemoveRange(reviews);
 
                 var reports = await _context.Reportes

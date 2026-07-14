@@ -6,6 +6,9 @@ import { AuthService } from '../services/auth.service';
 import { MensajesService } from '../services/mensajes.service';
 import { AdminService } from '../services/admin.service';
 import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
+import { TransaccionService, ProponerTratoDto } from '../services/transaccion.service';
+import { ResenaService, Resena } from '../services/resena.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-mensajes',
@@ -18,6 +21,9 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
   private authService = inject(AuthService);
   private mensajesService = inject(MensajesService);
   private adminService = inject(AdminService);
+  private transaccionService = inject(TransaccionService);
+  private resenaService = inject(ResenaService);
+  private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -34,6 +40,22 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
   public loadingMensajes = signal<boolean>(false);
 
   public showOptionsMenu = signal<boolean>(false);
+
+  // --- TRADE MODAL STATE ---
+  public showProposeModal = signal<boolean>(false);
+  public inventarioVendedor = signal<any[]>([]);
+  public selectedCartaToSell = signal<any>(null);
+  public proposedPrice = signal<number | null>(null);
+  public proposingTrade = signal<boolean>(false);
+
+  // --- REVIEW MODAL STATE ---
+  public showReviewModal = signal<boolean>(false);
+  public selectedReviewSeller = signal<any>(null);
+  public newReviewRating = signal<number>(5);
+  public newReviewText = signal<string>('');
+  public reviewSubmitting = signal<boolean>(false);
+  public reviewError = signal<string | null>(null);
+  public reviewSuccess = signal<string | null>(null);
 
   private pollSubscription: any = null;
   private shouldScrollToBottom = false;
@@ -283,6 +305,154 @@ export class MensajesComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   esImagen(texto: string | null | undefined): boolean {
     return !!texto && texto.startsWith('data:image/');
+  }
+
+  isTradeProposal(texto: string | null | undefined): boolean {
+    return !!texto && texto.startsWith('[SISTEMA_PROPUESTA_TRATO]');
+  }
+
+  isTradeConfirmed(texto: string | null | undefined): boolean {
+    return !!texto && texto.startsWith('[SISTEMA_TRATO_CONFIRMADO]');
+  }
+
+  getTradeProposalData(texto: string): any {
+    try {
+      const jsonStr = texto.replace('[SISTEMA_PROPUESTA_TRATO]', '');
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  openProposeModal() {
+    const user = this.currentUser();
+    if (!user) return;
+    this.showProposeModal.set(true);
+    
+    // Fetch user inventory directly via simple HTTP call to inventario endpoint
+    this.http.get<any[]>(`http://localhost:5210/api/inventario/${user.id}`).subscribe({
+      next: (inv) => {
+        this.inventarioVendedor.set(inv);
+      },
+      error: (err) => {
+        // If the API returns 404 for empty inventory, just set empty array
+        if (err.status === 404) {
+          this.inventarioVendedor.set([]);
+        } else {
+          console.error('Error fetching inventory', err);
+        }
+      }
+    });
+  }
+
+  closeProposeModal() {
+    this.showProposeModal.set(false);
+    this.selectedCartaToSell.set(null);
+    this.proposedPrice.set(null);
+  }
+
+  submitProposeTrade() {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    const carta = this.selectedCartaToSell();
+    
+    if (!user || !sel || !carta) return;
+
+    this.proposingTrade.set(true);
+    const dto: ProponerTratoDto = {
+      idVendedor: user.id,
+      idComprador: sel.contacto.id,
+      idInventarioUser: carta.idInventarioUser,
+      precio: this.proposedPrice()
+    };
+
+    this.transaccionService.proponerTrato(dto).subscribe({
+      next: () => {
+        this.proposingTrade.set(false);
+        this.closeProposeModal();
+        this.actualizarChatsYMensajes();
+      },
+      error: (err) => {
+        console.error('Error al proponer trato', err);
+        this.proposingTrade.set(false);
+        alert('Hubo un error al enviar la propuesta.');
+      }
+    });
+  }
+
+  confirmarTrato(msg: any, tradeData: any) {
+    const user = this.currentUser();
+    const sel = this.seleccionado();
+    if (!user || !sel) return;
+
+    const dto: ProponerTratoDto = {
+      idVendedor: sel.contacto.id, // remitente del mensaje
+      idComprador: user.id, // el que acepta
+      idInventarioUser: tradeData.idInventarioUser,
+      precio: tradeData.precio
+    };
+
+    this.transaccionService.confirmarTrato(dto).subscribe({
+      next: () => {
+        this.actualizarChatsYMensajes();
+        
+        // Open review modal instantly for the buyer
+        this.selectedReviewSeller.set(sel.contacto);
+        this.newReviewRating.set(5);
+        this.newReviewText.set('');
+        this.showReviewModal.set(true);
+      },
+      error: (err) => {
+        console.error('Error al confirmar trato', err);
+        alert(err.error?.message || 'Error al confirmar la transacción.');
+      }
+    });
+  }
+
+  // --- REVIEW LOGIC ---
+  closeReviewModal() {
+    this.showReviewModal.set(false);
+    this.selectedReviewSeller.set(null);
+  }
+
+  setRating(rating: number) {
+    this.newReviewRating.set(rating);
+  }
+
+  submitReview() {
+    const currentUser = this.authService.currentUserValue;
+    const seller = this.selectedReviewSeller();
+    if (!currentUser || !seller) return;
+
+    if (this.newReviewText().trim().length < 5) {
+      this.reviewError.set('La reseña debe tener al menos 5 caracteres.');
+      return;
+    }
+
+    this.reviewSubmitting.set(true);
+    this.reviewError.set(null);
+
+    const resena: Resena = {
+      idUsuarioResenador: currentUser.id,
+      idUsuarioResenado: seller.id,
+      idItem: null,
+      calificacion: this.newReviewRating(),
+      texto: this.newReviewText().trim()
+    };
+
+    this.resenaService.crearResena(resena).subscribe({
+      next: (res) => {
+        this.reviewSuccess.set('Reseña guardada exitosamente. ¡Gracias!');
+        setTimeout(() => this.reviewSuccess.set(null), 4000);
+        this.reviewSubmitting.set(false);
+        this.closeReviewModal();
+      },
+      error: (err) => {
+        console.error('Error al enviar reseña', err);
+        this.reviewError.set(err.error?.message || 'Hubo un error al guardar la reseña.');
+        this.reviewSubmitting.set(false);
+      }
+    });
   }
 
   eliminarConversacionActual() {

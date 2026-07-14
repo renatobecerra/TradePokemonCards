@@ -79,6 +79,27 @@ namespace Backend.Controllers
                 return BadRequest(new { message = "La reseña debe estar asociada a un usuario o a una carta." });
             }
 
+            // Verificar si el usuario ya ha dejado una reseña a este vendedor
+            if (dto.IdUsuarioResenado.HasValue)
+            {
+                var reseñaExistente = await _context.Reseñas
+                    .FirstOrDefaultAsync(r => r.IdUsuarioReseñador == dto.IdUsuarioResenador && r.IdUsuarioReseñado == dto.IdUsuarioResenado);
+                
+                if (reseñaExistente != null)
+                {
+                    return BadRequest(new { message = "Ya has dejado una reseña para este usuario anteriormente." });
+                }
+
+                // NUEVA VALIDACIÓN: Verificar que exista una transacción completada entre ambos
+                var transaccionExistente = await _context.Transacciones
+                    .AnyAsync(t => t.IdVendedor == dto.IdUsuarioResenado && t.IdComprador == dto.IdUsuarioResenador && t.Estado == "Completado");
+                
+                if (!transaccionExistente)
+                {
+                    return BadRequest(new { message = "No puedes reseñar a un vendedor con el que no has completado un trato." });
+                }
+            }
+
             var nuevaResena = new Reseña
             {
                 IdUsuarioReseñador = dto.IdUsuarioResenador,

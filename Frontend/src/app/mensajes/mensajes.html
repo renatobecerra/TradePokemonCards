@@ -100,6 +100,13 @@
             </div>
             
             <div class="options-menu-container">
+              <button class="btn-propose-trade" (click)="openProposeModal()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                CERRAR TRATO
+              </button>
+              
               <button class="btn-options-trigger" (click)="toggleOptionsMenu($event)" title="Opciones de chat">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                   <circle cx="12" cy="5" r="2.2"></circle>
@@ -154,6 +161,41 @@
                       <div class="message-content">
                         @if (esImagen(msg.texto)) {
                           <img [src]="msg.texto" alt="Imagen adjunta" class="chat-image-attachment" (load)="scrollToBottom()">
+                        } @else if (isTradeProposal(msg.texto)) {
+                          <div class="trade-proposal-bubble">
+                            <div class="trade-header">
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                              </svg>
+                              <h4>PROPUESTA DE INTERCAMBIO</h4>
+                            </div>
+                            <div class="trade-body">
+                              <p><strong>Carta:</strong> {{ getTradeProposalData(msg.texto)?.nombreCarta }}</p>
+                              @if (getTradeProposalData(msg.texto)?.precio) {
+                                <p><strong>Precio:</strong> {{ getTradeProposalData(msg.texto)?.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
+                              } @else {
+                                <p><strong>Precio:</strong> Intercambio</p>
+                              }
+                            </div>
+                            @if (msg.idRemitente !== currentUser()?.id) {
+                              <button class="btn-confirm-trade" (click)="confirmarTrato(msg, getTradeProposalData(msg.texto))">ACEPTAR TRATO</button>
+                            } @else {
+                              <span class="trade-pending-text">Esperando respuesta...</span>
+                            }
+                          </div>
+                        } @else if (isTradeConfirmed(msg.texto)) {
+                          <div class="trade-confirmed-bubble">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" class="success-icon">
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <div>
+                              <h4>TRATO CONFIRMADO</h4>
+                              <p>El trato ha sido cerrado exitosamente.</p>
+                            </div>
+                          </div>
                         } @else {
                           {{ msg.texto }}
                         }
@@ -220,4 +262,90 @@
 
     </div>
   </main>
+
+  <!-- MODAL PARA CERRAR TRATO -->
+  @if (showProposeModal()) {
+    <div class="review-modal-overlay">
+      <div class="review-modal-content">
+        <h2 class="review-modal-title">Cerrar Trato</h2>
+        <p class="review-modal-subtitle">Selecciona la carta que vas a vender/intercambiar con <strong>{{ seleccionado()?.contacto?.nombre }}</strong>.</p>
+        
+        <div class="form-group">
+          <label class="form-label">Carta a Transferir</label>
+          <select class="form-select" [(ngModel)]="selectedCartaToSell">
+            <option [ngValue]="null">Selecciona una carta...</option>
+            @for (item of inventarioVendedor(); track item.idInventarioUser) {
+              <option [ngValue]="item">{{ item.nombre }} ({{ item.estado }})</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Precio Acordado (Opcional)</label>
+          <input type="number" class="form-input" [(ngModel)]="proposedPrice" placeholder="Ej: 5000">
+          <small class="form-help">Si es un intercambio por otra carta, déjalo en blanco.</small>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closeProposeModal()" [disabled]="proposingTrade()">CANCELAR</button>
+          <button class="btn-submit" (click)="submitProposeTrade()" [disabled]="proposingTrade() || !selectedCartaToSell()">
+            {{ proposingTrade() ? 'ENVIANDO...' : 'PROPONER TRATO' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL PARA DEJAR RESEÑA (Después de confirmar trato) -->
+  @if (showReviewModal()) {
+    <div class="review-modal-overlay">
+      <div class="review-modal-content">
+        <h2 class="review-modal-title">¡Trato Confirmado!</h2>
+        <p class="review-modal-subtitle">Por favor, califica tu experiencia con <strong>{{ selectedReviewSeller()?.nombre }}</strong>.</p>
+        
+        <div class="form-group">
+          <label class="form-label">Calificación</label>
+          <div class="stars-selector">
+            @for (star of [1,2,3,4,5]; track $index) {
+              <span class="star" (click)="setRating(star)" [class.active]="star <= newReviewRating()">★</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tu Experiencia</label>
+          <textarea class="form-textarea" [(ngModel)]="newReviewText" rows="4" placeholder="¿Cómo fue el trato? ¿El estado de la carta era el acordado?"></textarea>
+        </div>
+
+        @if (reviewError()) {
+          <div class="review-error-msg">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="error-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            {{ reviewError() }}
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closeReviewModal()" [disabled]="reviewSubmitting()">SALTAR</button>
+          <button class="btn-submit" (click)="submitReview()" [disabled]="reviewSubmitting()">
+            {{ reviewSubmitting() ? 'ENVIANDO...' : 'ENVIAR RESEÑA' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- SUCCESS TOAST PARA RESEÑAS -->
+  @if (reviewSuccess()) {
+    <div class="success-toast">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" class="success-icon">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      {{ reviewSuccess() }}
+    </div>
+  }
 </div>
