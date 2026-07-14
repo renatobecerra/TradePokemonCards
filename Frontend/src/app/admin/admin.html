@@ -1,0 +1,381 @@
+<div class="admin-page">
+  <comp-nav-bar></comp-nav-bar>
+
+  <main class="admin-container">
+    <div class="content-header-v2 admin-header">
+      <h1 class="section-title">Panel de Control <span class="text-accent">ADMIN.</span></h1>
+      <p class="section-subtitle">Administra los entrenadores registrados, gestiona sus estados de cuenta y modera los artículos ofertados en el mercado.</p>
+    </div>
+
+    <div class="admin-tabs-bar">
+      <button 
+        class="admin-tab-btn" 
+        [class.active]="activeTab() === 'usuarios'"
+        (click)="switchTab('usuarios')"
+      >
+        GESTIONAR USUARIOS
+      </button>
+      <button 
+        class="admin-tab-btn" 
+        [class.active]="activeTab() === 'articulos'"
+        (click)="switchTab('articulos')"
+      >
+        MODERAR ARTÍCULOS
+      </button>
+      <button 
+        class="admin-tab-btn" 
+        [class.active]="activeTab() === 'reportes'"
+        (click)="switchTab('reportes')"
+      >
+        REPORTE DE MENSAJES
+      </button>
+    </div>
+
+    @if (activeTab() === 'usuarios') {
+      <div class="admin-section-card">
+        <div class="section-card-header">
+          <div class="search-box-admin">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              [(ngModel)]="filtroUsuario" 
+              placeholder="Buscar por nombre, correo o rol..."
+            >
+          </div>
+          <span class="count-tag-mono">{{ getUsuariosFiltrados().length }} USUARIOS ENCONTRADOS</span>
+        </div>
+
+        <div class="table-responsive-wrapper">
+          @if (loadingUsuarios()) {
+            <div class="admin-loading-state">
+              <div class="spinner"></div>
+              <p>Consultando base de datos de entrenadores...</p>
+            </div>
+          } @else if (getUsuariosFiltrados().length === 0) {
+            <div class="admin-empty-state">
+              <p>No se encontraron entrenadores que coincidan con la búsqueda.</p>
+            </div>
+          } @else {
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ENTRENADOR</th>
+                  <th>CORREO ELECTRÓNICO</th>
+                  <th>ROL</th>
+                  <th>FECHA REGISTRO</th>
+                  <th>ESTADO</th>
+                  <th class="text-right">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (user of getUsuariosFiltrados(); track user.id) {
+                  <tr>
+                    <td>
+                      <div class="user-cell">
+                        @if (user.foto) {
+                          <img [src]="user.foto" alt="Avatar" class="user-avatar-mini">
+                        } @else {
+                          <div class="user-avatar-placeholder-mini">{{ user.nombre.charAt(0) }}</div>
+                        }
+                        <span class="user-fullname">{{ user.nombre }} {{ user.apellido }}</span>
+                      </div>
+                    </td>
+                    <td><span class="text-secondary-mono">{{ user.correo }}</span></td>
+                    <td>
+                      <span class="badge-role" [class.admin-role]="user.rol === 'Administrador'">
+                        {{ user.rol }}
+                      </span>
+                    </td>
+                    <td><span class="text-secondary-mono">{{ formatearFecha(user.fechaRegistro) }}</span></td>
+                    <td>
+                      @if (user.estado === 1) {
+                        <span class="status-indicator active">✓ Activo</span>
+                      } @else {
+                        <span class="status-indicator banned" [title]="'Motivo: ' + (user.motivoBaneo || 'No especificado') + ' | Hasta: ' + formatearFecha(user.fechaDesbaneo)">
+                          Bloqueado
+                        </span>
+                      }
+                    </td>
+                    <td>
+                      <div class="actions-cell">
+                        <button 
+                          (click)="cambiarRol(user)" 
+                          class="btn-admin-action role-toggle"
+                          [class.is-admin]="user.rol === 'Administrador'"
+                          [disabled]="user.id === currentUser()?.id"
+                        >
+                          {{ user.rol === 'Administrador' ? 'HACER USUARIO' : 'HACER ADMIN' }}
+                        </button>
+
+                        @if (user.estado === 1) {
+                          <button 
+                            (click)="abrirBanModal(user)" 
+                            class="btn-admin-action ban"
+                            [disabled]="user.id === currentUser()?.id"
+                          >
+                            BANEAR
+                          </button>
+                        } @else {
+                          <button 
+                            (click)="cambiarEstado(user)" 
+                            class="btn-admin-action unban"
+                            [disabled]="user.id === currentUser()?.id"
+                          >
+                            DESBANEAR
+                          </button>
+                        }
+                        
+                        <button 
+                          (click)="eliminarUsuario(user)" 
+                          class="btn-admin-action delete"
+                          [disabled]="user.id === currentUser()?.id"
+                        >
+                          ELIMINAR
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'articulos') {
+      <div class="admin-section-card">
+        <div class="section-card-header">
+          <div class="search-box-admin">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              [(ngModel)]="filtroArticulo" 
+              placeholder="Buscar por carta, vendedor o rareza..."
+            >
+          </div>
+          <span class="count-tag-mono">{{ getArticulosFiltrados().length }} PUBLICACIONES ACTIVAS</span>
+        </div>
+
+        <div class="table-responsive-wrapper">
+          @if (loadingArticulos()) {
+            <div class="admin-loading-state">
+              <div class="spinner"></div>
+              <p>Consultando listados de cartas en el mercado...</p>
+            </div>
+          } @else if (getArticulosFiltrados().length === 0) {
+            <div class="admin-empty-state">
+              <p>No se encontraron publicaciones de cartas en oferta.</p>
+            </div>
+          } @else {
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>CARTA EN OFERTA</th>
+                  <th>VENDEDOR / PUBLICADO POR</th>
+                  <th>ESTADO FÍSICO</th>
+                  <th>CANTIDAD</th>
+                  <th>PRECIO PROPUESTO</th>
+                  <th class="text-right">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (art of getArticulosFiltrados(); track art.idInventarioUser) {
+                  <tr>
+                    <td>
+                      <div class="card-cell">
+                        <img 
+                          [src]="art.imgLink ? (art.imgLink.endsWith('.jpg') || art.imgLink.endsWith('.png') ? art.imgLink : art.imgLink + '/low.jpg') : ''" 
+                          alt="Carta" 
+                          class="card-img-mini"
+                        >
+                        <div class="card-cell-info">
+                          <span class="card-cell-name">{{ art.nombreCarta }}</span>
+                          <span class="card-cell-subtext">{{ art.edicion || 'Edición Oficial' }} • {{ art.rareza }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="seller-cell">
+                        <span class="seller-name-cell">{{ art.vendedorNombre }}</span>
+                        <span class="seller-email-cell">{{ art.vendedorCorreo }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge-state state-state" [class]="'state-' + art.estadoFisico.toLowerCase()">
+                        {{ art.estadoFisico }}
+                      </span>
+                    </td>
+                    <td><span class="text-secondary-mono">x{{ art.cantidad || 1 }}</span></td>
+                    <td>
+                      <span class="price-cell">{{ art.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+                    </td>
+                    <td>
+                      <div class="actions-cell">
+                        <button 
+                          (click)="eliminarArticulo(art)" 
+                          class="btn-admin-action delete"
+                        >
+                          ELIMINAR
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'reportes') {
+      <div class="admin-section-card">
+        <div class="section-card-header">
+          <div class="search-box-admin">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              [(ngModel)]="filtroReporte" 
+              placeholder="Buscar por denunciante, acusado o motivo..."
+            >
+          </div>
+          <span class="count-tag-mono">{{ getReportesFiltrados().length }} DENUNCIAS RECIBIDAS</span>
+        </div>
+
+        <div class="table-responsive-wrapper">
+          @if (loadingReportes()) {
+            <div class="admin-loading-state">
+              <div class="spinner"></div>
+              <p>Consultando base de datos de denuncias...</p>
+            </div>
+          } @else if (getReportesFiltrados().length === 0) {
+            <div class="admin-empty-state">
+              <p>No hay reportes de comportamientos inapropiados o estafas pendientes.</p>
+            </div>
+          } @else {
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>DENUNCIANTE (REPORTANTE)</th>
+                  <th>USUARIO ACUSADO (REPORTADO)</th>
+                  <th>MOTIVO DEL REPORTE / DENUNCIA</th>
+                  <th>FECHA Y HORA</th>
+                  <th>ESTADO ACUSADO</th>
+                  <th class="text-right">ACCIONES DE MODERACIÓN</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (rep of getReportesFiltrados(); track rep.idReporte) {
+                  <tr>
+                    <td>
+                      <div class="seller-cell">
+                        <span class="seller-name-cell">{{ rep.reportanteNombre }}</span>
+                        <span class="seller-email-cell">{{ rep.reportanteCorreo }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="seller-cell">
+                        <span class="seller-name-cell">{{ rep.reportadoNombre }}</span>
+                        <span class="seller-email-cell">{{ rep.reportadoCorreo }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="report-motivo-text">"{{ rep.motivo }}"</span>
+                    </td>
+                    <td><span class="text-secondary-mono">{{ formatearFechaHora(rep.fecha) }}</span></td>
+                    <td>
+                      @if (rep.reportadoEstado === 1) {
+                        <span class="status-indicator active">✓ Activo</span>
+                      } @else {
+                        <span class="status-indicator banned" [title]="'Motivo: ' + (rep.reportadoMotivoBaneo || 'No especificado') + ' | Hasta: ' + formatearFecha(rep.reportadoFechaDesbaneo)">
+                          Baneado
+                        </span>
+                      }
+                    </td>
+                    <td>
+                      <div class="actions-cell">
+                        @if (rep.reportadoEstado === 1) {
+                          <button 
+                            (click)="abrirBanModal(rep)" 
+                            class="btn-admin-action ban"
+                            [disabled]="rep.idUsuarioReportado === currentUser()?.id"
+                          >
+                            BANEAR
+                          </button>
+                        } @else {
+                          <button 
+                            (click)="cambiarEstado(rep)" 
+                            class="btn-admin-action unban"
+                            [disabled]="rep.idUsuarioReportado === currentUser()?.id"
+                          >
+                            DESBANEAR
+                          </button>
+                        }
+                        
+                        <button 
+                          (click)="desestimarReporte(rep)" 
+                          class="btn-admin-action delete"
+                        >
+                          DESESTIMAR
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+    }
+  </main>
+
+  @if (showBanModal()) {
+    <div class="ban-modal-overlay">
+      <div class="ban-modal-card">
+        <div class="ban-modal-header">
+          <h2>BANEAR ENTRENADOR</h2>
+          <button class="btn-close-modal" (click)="cerrarBanModal()">×</button>
+        </div>
+        <div class="ban-modal-body">
+          <p class="ban-target-info">
+            Aplicando sanción a: <strong>{{ userToBan()?.nombre || userToBan()?.reportadoNombre }} {{ userToBan()?.apellido || '' }}</strong>
+          </p>
+          
+          <div class="ban-form-group">
+            <label for="ban-days">DÍAS DE BANEO (DURACIÓN)</label>
+            <input 
+              type="number" 
+              id="ban-days" 
+              [(ngModel)]="banDays" 
+              min="1" 
+              max="9999" 
+              placeholder="Ej: 7"
+            >
+          </div>
+          
+          <div class="ban-form-group">
+            <label for="ban-reason">MOTIVO DEL BANEO (MENSAJE EXPLICATIVO)</label>
+            <textarea 
+              id="ban-reason" 
+              [(ngModel)]="banReason" 
+              rows="4" 
+              placeholder="Escribe el motivo detallado de esta suspensión..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="ban-modal-footer">
+          <button class="btn-modal-cancel" (click)="cerrarBanModal()">CANCELAR</button>
+          <button class="btn-modal-confirm" (click)="confirmarBaneo()">CONFIRMAR BANEO</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

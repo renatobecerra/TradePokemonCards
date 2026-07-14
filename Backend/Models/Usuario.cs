@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Backend.Models;
@@ -36,6 +36,10 @@ public partial class Usuario
     public string? Descripcion { get; set; }
 
     public string? ImgPerfil { get; set; }
+
+    public string? MotivoBaneo { get; set; }
+
+    public DateTime? FechaDesbaneo { get; set; }
 
     public virtual ICollection<Guardado> Guardados { get; set; } = new List<Guardado>();
 

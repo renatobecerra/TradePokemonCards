@@ -1,0 +1,453 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Backend.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Backend.Controllers
+{
+    [ApiController]
+    [Route("api/admin")]
+    public class AdminController : ControllerBase
+    {
+        private readonly PokemonMarketContext _context;
+
+        public AdminController(PokemonMarketContext context)
+        {
+            _context = context;
+        }
+
+        private async Task EnsureReportesTableExists()
+        {
+            await _context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS reportes (
+                    IdReporte INT AUTO_INCREMENT PRIMARY KEY,
+                    IdUsuarioReportante INT NOT NULL,
+                    IdUsuarioReportado INT NOT NULL,
+                    Motivo VARCHAR(500) NOT NULL,
+                    Fecha DATETIME NOT NULL,
+                    Estado VARCHAR(50) DEFAULT 'Pendiente',
+                    FOREIGN KEY (IdUsuarioReportante) REFERENCES usuario(ID_Usuarios) ON DELETE CASCADE,
+                    FOREIGN KEY (IdUsuarioReportado) REFERENCES usuario(ID_Usuarios) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+                DELETE FROM inventario_usuario 
+                WHERE ID_Usuario IN (
+                    SELECT ID_Usuarios FROM usuario WHERE Rol = 'Administrador'
+                );
+            ");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+                DELETE FROM mensajes 
+                WHERE ID_Remitente IN (
+                    SELECT ID_Usuarios FROM usuario WHERE Rol = 'Administrador'
+                ) OR ID_Destinatario IN (
+                    SELECT ID_Usuarios FROM usuario WHERE Rol = 'Administrador'
+                );
+            ");
+
+            try
+            {
+                var conn = _context.Database.GetDbConnection();
+                bool hasMotivoColumn = false;
+                bool hasFechaColumn = false;
+                
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    await conn.OpenAsync();
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'usuario'";
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var colName = reader.GetString(0);
+                            if (colName.Equals("MotivoBaneo", StringComparison.OrdinalIgnoreCase)) hasMotivoColumn = true;
+                            if (colName.Equals("FechaDesbaneo", StringComparison.OrdinalIgnoreCase)) hasFechaColumn = true;
+                        }
+                    }
+                }
+                
+                if (!hasMotivoColumn)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("ALTER TABLE usuario ADD COLUMN MotivoBaneo VARCHAR(500) NULL;");
+                }
+                if (!hasFechaColumn)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("ALTER TABLE usuario ADD COLUMN FechaDesbaneo DATETIME NULL;");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al verificar/crear columnas de baneo: {ex.Message}");
+            }
+        }
+
+        [HttpGet("usuarios")]
+        public async Task<IActionResult> GetUsuarios()
+        {
+            try
+            {
+                await EnsureReportesTableExists();
+
+                var usuarios = await _context.Usuarios
+                    .Select(u => new
+                    {
+                        id = u.IdUsuarios,
+                        nombre = u.Nombre,
+                        apellido = u.Apellido,
+                        correo = u.Correo,
+                        rol = u.Rol,
+                        estado = u.Estado,
+                        fechaRegistro = u.FechaRegistro,
+                        foto = u.ImgPerfil,
+                        motivoBaneo = u.MotivoBaneo,
+                        fechaDesbaneo = u.FechaDesbaneo
+                    })
+                    .ToListAsync();
+
+                return Ok(usuarios);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al obtener usuarios: {ex.Message}" });
+            }
+        }
+
+        [HttpPut("usuarios/estado/{idUsuario}")]
+        public async Task<IActionResult> CambiarEstadoUsuario(int idUsuario, [FromBody] int nuevoEstado)
+        {
+            try
+            {
+                await EnsureReportesTableExists();
+
+                var usuario = await _context.Usuarios.FindAsync(idUsuario);
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado" });
+                }
+
+                usuario.Estado = (sbyte)nuevoEstado;
+                if (nuevoEstado == 1)
+                {
+                    usuario.MotivoBaneo = null;
+                    usuario.FechaDesbaneo = null;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = $"Estado del usuario actualizado a {nuevoEstado}", estado = usuario.Estado });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al cambiar estado del usuario: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("usuarios/banear/{idUsuario}")]
+        public async Task<IActionResult> BanearUsuario(int idUsuario, [FromBody] BanDto dto)
+        {
+            try
+            {
+                await EnsureReportesTableExists();
+
+                var usuario = await _context.Usuarios.FindAsync(idUsuario);
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado" });
+                }
+
+                usuario.Estado = 0;
+                usuario.MotivoBaneo = dto.Motivo;
+                usuario.FechaDesbaneo = DateTime.Now.AddDays(dto.Dias);
+
+                var listings = await _context.InventarioUsuarios.Where(i => i.IdUsuario == idUsuario).ToListAsync();
+                if (listings.Any())
+                {
+                    _context.InventarioUsuarios.RemoveRange(listings);
+                }
+
+                var msgs = await _context.Mensajes
+                    .Where(m => m.IdRemitente == idUsuario || m.IdDestinatario == idUsuario)
+                    .ToListAsync();
+                if (msgs.Any())
+                {
+                    _context.Mensajes.RemoveRange(msgs);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    mensaje = $"Usuario baneado por {dto.Dias} días.", 
+                    estado = usuario.Estado,
+                    motivoBaneo = usuario.MotivoBaneo,
+                    fechaDesbaneo = usuario.FechaDesbaneo
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al banear usuario: {ex.Message}" });
+            }
+        }
+
+        [HttpDelete("usuarios/eliminar/{idUsuario}")]
+        public async Task<IActionResult> EliminarUsuario(int idUsuario)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios.FindAsync(idUsuario);
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado" });
+                }
+
+                await EnsureReportesTableExists();
+
+                var guardados = await _context.Guardados.Where(g => g.IdUsuario == idUsuario).ToListAsync();
+                _context.Guardados.RemoveRange(guardados);
+
+                var invUsuarios = await _context.InventarioUsuarios.Where(i => i.IdUsuario == idUsuario).ToListAsync();
+                _context.InventarioUsuarios.RemoveRange(invUsuarios);
+
+                var mensajes = await _context.Mensajes
+                    .Where(m => m.IdRemitente == idUsuario || m.IdDestinatario == idUsuario)
+                    .ToListAsync();
+                _context.Mensajes.RemoveRange(mensajes);
+
+                var notifs = await _context.Notificaciones.Where(n => n.IdUserDestinatario == idUsuario).ToListAsync();
+                _context.Notificaciones.RemoveRange(notifs);
+
+                var reviews = await _context.Reseñas.Where(r => r.IdUsuario == idUsuario).ToListAsync();
+                _context.Reseñas.RemoveRange(reviews);
+
+                var reports = await _context.Reportes
+                    .Where(r => r.IdUsuarioReportante == idUsuario || r.IdUsuarioReportado == idUsuario)
+                    .ToListAsync();
+                _context.Reportes.RemoveRange(reports);
+
+                _context.Usuarios.Remove(usuario);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = "Usuario eliminado con éxito de la base de datos" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al eliminar el usuario: {ex.Message}" });
+            }
+        }
+
+        [HttpPut("usuarios/rol/{idUsuario}")]
+        public async Task<IActionResult> CambiarRolUsuario(int idUsuario, [FromBody] string nuevoRol)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios.FindAsync(idUsuario);
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado" });
+                }
+
+                if (nuevoRol != "Administrador" && nuevoRol != "Usuario")
+                {
+                    return BadRequest(new { mensaje = "Rol no válido. Debe ser 'Administrador' o 'Usuario'." });
+                }
+
+                usuario.Rol = nuevoRol;
+
+                if (nuevoRol == "Administrador")
+                {
+                    var listings = await _context.InventarioUsuarios.Where(i => i.IdUsuario == idUsuario).ToListAsync();
+                    if (listings.Any())
+                    {
+                        _context.InventarioUsuarios.RemoveRange(listings);
+                    }
+
+                    var msgs = await _context.Mensajes
+                        .Where(m => m.IdRemitente == idUsuario || m.IdDestinatario == idUsuario)
+                        .ToListAsync();
+                    if (msgs.Any())
+                    {
+                        _context.Mensajes.RemoveRange(msgs);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = $"Rol del usuario actualizado a {nuevoRol}", rol = usuario.Rol });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al cambiar rol del usuario: {ex.Message}" });
+            }
+        }
+
+        [HttpGet("articulos")]
+        public async Task<IActionResult> GetArticulosMercado()
+        {
+            try
+            {
+                var articulos = await _context.InventarioUsuarios
+                    .Include(i => i.IdUsuarioNavigation)
+                    .Include(i => i.IdItemNavigation)
+                    .Select(i => new {
+                        idInventarioUser = i.IdInventarioUser,
+                        idUsuario = i.IdUsuario,
+                        vendedorNombre = i.IdUsuarioNavigation.Nombre + " " + i.IdUsuarioNavigation.Apellido,
+                        vendedorCorreo = i.IdUsuarioNavigation.Correo,
+                        idItem = i.IdItem,
+                        nombreCarta = i.IdItemNavigation.Nombre,
+                        rareza = i.IdItemNavigation.Rareza,
+                        precio = i.IdItemNavigation.precio,
+                        edicion = i.IdItemNavigation.Edicion,
+                        imgLink = i.IdItemNavigation.ImgLink,
+                        estadoFisico = i.EstadoFisico,
+                        cantidad = i.Cantidad,
+                        fechaObtencion = i.FechaObtencion
+                    })
+                    .ToListAsync();
+
+                return Ok(articulos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al obtener artículos del mercado: {ex.Message}" });
+            }
+        }
+
+        [HttpDelete("articulos/eliminar/{idInventarioUser}")]
+        public async Task<IActionResult> EliminarArticuloMercado(int idInventarioUser)
+        {
+            try
+            {
+                var listing = await _context.InventarioUsuarios.FindAsync(idInventarioUser);
+                if (listing == null)
+                {
+                    return NotFound(new { mensaje = "Artículo de inventario no encontrado" });
+                }
+
+                _context.InventarioUsuarios.Remove(listing);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = "Artículo eliminado del inventario con éxito" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al eliminar el artículo: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("reportes")]
+        public async Task<IActionResult> CrearReporte([FromBody] ReporteDto dto)
+        {
+            try
+            {
+                await EnsureReportesTableExists();
+
+                var reporte = new Reporte
+                {
+                    IdUsuarioReportante = dto.IdUsuarioReportante,
+                    IdUsuarioReportado = dto.IdUsuarioReportado,
+                    Motivo = dto.Motivo,
+                    Fecha = DateTime.Now,
+                    Estado = "Pendiente"
+                };
+
+                _context.Reportes.Add(reporte);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = "Reporte enviado con éxito." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al procesar el reporte: {ex.Message}" });
+            }
+        }
+
+        [HttpGet("reportes")]
+        public async Task<IActionResult> GetReportes()
+        {
+            try
+            {
+                await EnsureReportesTableExists();
+
+                var reportes = await _context.Reportes
+                    .OrderByDescending(r => r.Fecha)
+                    .ToListAsync();
+
+                var resultado = new List<object>();
+                foreach (var r in reportes)
+                {
+                    var reportante = await _context.Usuarios.FindAsync(r.IdUsuarioReportante);
+                    var reportado = await _context.Usuarios.FindAsync(r.IdUsuarioReportado);
+
+                    resultado.Add(new
+                    {
+                        idReporte = r.IdReporte,
+                        idUsuarioReportante = r.IdUsuarioReportante,
+                        reportanteNombre = reportante != null ? $"{reportante.Nombre} {reportante.Apellido}" : "Usuario Eliminado",
+                        reportanteCorreo = reportante?.Correo ?? "",
+                        idUsuarioReportado = r.IdUsuarioReportado,
+                        reportadoNombre = reportado != null ? $"{reportado.Nombre} {reportado.Apellido}" : "Usuario Eliminado",
+                        reportadoCorreo = reportado?.Correo ?? "",
+                        reportadoEstado = reportado?.Estado ?? 1,
+                        reportadoMotivoBaneo = reportado?.MotivoBaneo ?? "",
+                        reportadoFechaDesbaneo = reportado?.FechaDesbaneo,
+                        motivo = r.Motivo,
+                        fecha = r.Fecha,
+                        estado = r.Estado
+                    });
+                }
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al obtener reportes: {ex.Message}" });
+            }
+        }
+
+        [HttpDelete("reportes/{idReporte}")]
+        public async Task<IActionResult> EliminarReporte(int idReporte)
+        {
+            try
+            {
+                await EnsureReportesTableExists();
+
+                var reporte = await _context.Reportes.FindAsync(idReporte);
+                if (reporte == null)
+                {
+                    return NotFound(new { mensaje = "Reporte no encontrado" });
+                }
+
+                _context.Reportes.Remove(reporte);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = "Reporte desestimado con éxito" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error al desestimar el reporte: {ex.Message}" });
+            }
+        }
+    }
+
+    public class ReporteDto
+    {
+        public int IdUsuarioReportante { get; set; }
+        public int IdUsuarioReportado { get; set; }
+        public string Motivo { get; set; } = null!;
+    }
+
+    public class BanDto
+    {
+        public int Dias { get; set; }
+        public string Motivo { get; set; } = null!;
+    }
+}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
@@ -31,6 +31,8 @@ public partial class PokemonMarketContext : DbContext
     public virtual DbSet<TopRegistro> TopRegistros { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
+
+    public virtual DbSet<Reporte> Reportes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -246,7 +248,7 @@ public partial class PokemonMarketContext : DbContext
             entity.Property(e => e.Descripcion).HasColumnType("text");
             entity.Property(e => e.EsVerificado).HasDefaultValueSql("'0'");
             entity.Property(e => e.Estado).HasDefaultValueSql("'1'");
-            entity.Property(e => e.EstadoPresencia).HasDefaultValueSql("'1'"); // NO ESTA EN LA ORIGINAL.
+            entity.Property(e => e.EstadoPresencia).HasDefaultValueSql("'1'");
             entity.Property(e => e.FechaRegistro)  
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")

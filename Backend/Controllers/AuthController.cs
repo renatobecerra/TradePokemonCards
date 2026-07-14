@@ -56,6 +56,26 @@ namespace Backend.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                if (usuario.Estado == 0)
+                {
+                    if (usuario.FechaDesbaneo != null && usuario.FechaDesbaneo.Value <= DateTime.Now)
+                    {
+                        usuario.Estado = 1;
+                        usuario.MotivoBaneo = null;
+                        usuario.FechaDesbaneo = null;
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        string fechaMsg = usuario.FechaDesbaneo != null 
+                            ? usuario.FechaDesbaneo.Value.ToString("dd/MM/yyyy HH:mm") 
+                            : "Indefinido";
+                        return BadRequest(new { 
+                            mensaje = $"Tu cuenta ha sido suspendida. Motivo: {usuario.MotivoBaneo ?? "Incumplimiento de las reglas"}. Suspensión activa hasta: {fechaMsg}." 
+                        });
+                    }
+                }
+
                 return Ok(new
                 {
                     mensaje = "Inicio de sesión con Google exitoso.",
@@ -101,7 +121,6 @@ namespace Backend.Controllers
             }
         }
 
-        // POST: api/auth/registrar
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] Usuario nuevoUsuario)
         {
@@ -298,6 +317,26 @@ namespace Backend.Controllers
                     return Unauthorized(new {mensaje = "Correo o Contraseña incorrectas."});
                 }
 
+                if (usuarioExistente.Estado == 0)
+                {
+                    if (usuarioExistente.FechaDesbaneo != null && usuarioExistente.FechaDesbaneo.Value <= DateTime.Now)
+                    {
+                        usuarioExistente.Estado = 1;
+                        usuarioExistente.MotivoBaneo = null;
+                        usuarioExistente.FechaDesbaneo = null;
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        string fechaMsg = usuarioExistente.FechaDesbaneo != null 
+                            ? usuarioExistente.FechaDesbaneo.Value.ToString("dd/MM/yyyy HH:mm") 
+                            : "Indefinido";
+                        return Unauthorized(new { 
+                            mensaje = $"Tu cuenta ha sido suspendida. Motivo: {usuarioExistente.MotivoBaneo ?? "Incumplimiento de las reglas"}. Suspensión activa hasta: {fechaMsg}." 
+                        });
+                    }
+                }
+
                 return Ok(new
                 {
                     mensaje = "Inicio de sesión exitoso.",
@@ -320,6 +359,34 @@ namespace Backend.Controllers
                 return StatusCode(500, new {mensaje = $"Error Interno: {ex.Message}"});
             }
         }
+
+        [HttpGet("hacer-admin")]
+        public async Task<IActionResult> HacerAdmin([FromQuery] string correo)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(correo))
+                {
+                    return BadRequest(new { mensaje = "El correo es obligatorio." });
+                }
+
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == correo);
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado." });
+                }
+
+                usuario.Rol = "Administrador";
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = $"El usuario con correo {correo} ahora es Administrador exitosamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error: {ex.Message}" });
+            }
+        }
+
         [HttpPost("actualizar-perfil")]
         public async Task<IActionResult> ActualizarPerfil([FromBody] ActualizarPerfilDto datos)
         {
@@ -328,7 +395,6 @@ namespace Backend.Controllers
                 var usuario = await _context.Usuarios.FindAsync(datos.UsuarioId);
                 if (usuario == null) return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                // Actualizar campos permitidos
                 usuario.Nombre = datos.Nombre ?? usuario.Nombre;
                 usuario.Apellido = datos.Apellido ?? usuario.Apellido;
                 usuario.Telefono = datos.Telefono;
@@ -359,6 +425,7 @@ namespace Backend.Controllers
                 return StatusCode(500, new { mensaje = "Error al actualizar perfil: " + ex.Message });
             }
         }
+
         [HttpPost("cambiar-password")]
         public async Task<IActionResult> CambiarPassword([FromBody] CambiarPasswordDto datos)
         {
@@ -367,7 +434,6 @@ namespace Backend.Controllers
                 var usuario = await _context.Usuarios.FindAsync(datos.UsuarioId);
                 if (usuario == null) return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                // Verificar contraseña actual
                 bool claveCorrecta = BCrypt.Net.BCrypt.Verify(datos.PasswordActual, usuario.Contraseña);
                 if (!claveCorrecta)
                 {
@@ -396,7 +462,6 @@ namespace Backend.Controllers
         }
     }
 
-    // --- DTOs ---
     public class CambiarPasswordDto
     {
         public int UsuarioId { get; set; }

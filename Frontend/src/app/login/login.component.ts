@@ -34,8 +34,12 @@ export class LoginComponent {
 
     this.authService.login(this.correo, this.contrasena).subscribe({
       next: (response) => {
-        localStorage.setItem('usuario', JSON.stringify(response.usuario));
-        this.router.navigate(['/explorar']);
+        const user = response.usuario;
+        if (user && (user.rol === 'Administrador' || user.Rol === 'Administrador')) {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/explorar']);
+        }
       },
       error: (error) => {
         console.error('Error en login:', error);

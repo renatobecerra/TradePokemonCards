@@ -1,0 +1,223 @@
+<div class="mensajes-page">
+  <comp-nav-bar></comp-nav-bar>
+
+  <main class="mensajes-container">
+    <div class="content-header-v2 mensajes-header">
+      <h1 class="section-title">Bandeja de Entrada <span class="text-accent">POKET.</span></h1>
+      <p class="section-subtitle">Gestiona tus conversaciones con otros entrenadores y negocia intercambios de cartas.</p>
+    </div>
+
+    <div class="messenger-glow"></div>
+    <div class="messenger-wrapper">
+      
+      <aside class="sidebar-chats">
+        <div class="sidebar-header">
+          <h2 class="sidebar-title">Conversaciones</h2>
+          <span class="chat-count badge">{{ conversaciones().length }}</span>
+        </div>
+
+        <div class="chats-list-scroll">
+          @if (loadingChats()) {
+            <div class="sidebar-loading">
+              <div class="spinner"></div>
+              <p>Cargando conversaciones...</p>
+            </div>
+          } @else if (conversaciones().length === 0) {
+            <div class="sidebar-empty">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <p>No tienes chats activos.</p>
+              <button class="btn-goto-market-premium" routerLink="/explorar">IR AL MERCADO</button>
+            </div>
+          } @else {
+            <div class="chats-list">
+              @for (conv of conversaciones(); track conv.contacto.id) {
+                <button 
+                  class="chat-item" 
+                  [class.active]="seleccionado()?.contacto?.id === conv.contacto.id"
+                  (click)="seleccionarConversacion(conv)"
+                >
+                  <div class="avatar-container">
+                    @if (conv.contacto.foto) {
+                      <img [src]="conv.contacto.foto" alt="Avatar" class="chat-avatar">
+                    } @else {
+                      <div class="chat-avatar-placeholder">
+                        {{ conv.contacto.nombre.charAt(0) }}
+                      </div>
+                    }
+                    <div class="presence-dot" [style.background]="getPresenceColor(conv.contacto.estadoPresencia)"></div>
+                  </div>
+                  
+                  <div class="chat-item-info">
+                    <div class="chat-item-header">
+                      <span class="user-name">{{ conv.contacto.nombre }} {{ conv.contacto.apellido }}</span>
+                      <span class="msg-date">{{ formatearFecha(conv.ultimoMensaje?.fecha) }}</span>
+                    </div>
+                    <div class="chat-item-body">
+                      <p class="last-msg-text" [class.unread]="conv.noLeidos > 0">
+                        @if (conv.ultimoMensaje?.idRemitente === currentUser()?.id) {
+                          <span class="prefix-you">Tú: </span>
+                        }
+                        @if (esImagen(conv.ultimoMensaje?.texto)) {
+                          <span>📷 Imagen enviada</span>
+                        } @else {
+                          {{ conv.ultimoMensaje?.texto || 'Comenzar nueva conversación...' }}
+                        }
+                      </p>
+                      @if (conv.noLeidos > 0) {
+                        <span class="badge unread-badge">{{ conv.noLeidos }}</span>
+                      }
+                    </div>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </aside>
+
+      <section class="chat-panel">
+        @if (seleccionado()) {
+          <div class="chat-header">
+            <div class="chat-header-user">
+              <div class="avatar-container header-avatar">
+                @if (seleccionado().contacto.foto) {
+                  <img [src]="seleccionado().contacto.foto" alt="Avatar" class="chat-avatar">
+                } @else {
+                  <div class="chat-avatar-placeholder">
+                    {{ seleccionado().contacto.nombre.charAt(0) }}
+                  </div>
+                }
+                <div class="presence-dot" [style.background]="getPresenceColor(seleccionado().contacto.estadoPresencia)"></div>
+              </div>
+              <div class="user-meta">
+                <h3 class="active-chat-title">{{ seleccionado().contacto.nombre }} {{ seleccionado().contacto.apellido }}</h3>
+                <span class="status-text">{{ getPresenceLabel(seleccionado().contacto.estadoPresencia) }}</span>
+              </div>
+            </div>
+            
+            <div class="options-menu-container">
+              <button class="btn-options-trigger" (click)="toggleOptionsMenu($event)" title="Opciones de chat">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <circle cx="12" cy="5" r="2.2"></circle>
+                  <circle cx="12" cy="12" r="2.2"></circle>
+                  <circle cx="12" cy="19" r="2.2"></circle>
+                </svg>
+              </button>
+              
+              @if (showOptionsMenu()) {
+                <div class="chat-options-dropdown">
+                  <button (click)="reportarEntrenadorActual(); $event.stopPropagation()" class="dropdown-item warning">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="item-icon">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Reportar entrenador</span>
+                  </button>
+                  <button (click)="eliminarConversacionActual(); $event.stopPropagation()" class="dropdown-item danger">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="item-icon">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Eliminar conversación</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="messages-area" #scrollContainer>
+            @if (loadingMensajes()) {
+              <div class="messages-loading">
+                <div class="spinner"></div>
+                <p>Cargando mensajes...</p>
+              </div>
+            } @else if (mensajes().length === 0) {
+              <div class="messages-empty">
+                <div class="icon-bubble">
+                  <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                  </svg>
+                </div>
+                <h3>¡Saluda a {{ seleccionado().contacto.nombre }}!</h3>
+                <p>Escribe tu mensaje abajo para iniciar la conversación sobre cartas o intercambios.</p>
+              </div>
+            } @else {
+              <div class="messages-list">
+                @for (msg of mensajes(); track msg.idMensaje) {
+                  <div class="message-row" [class.sent]="msg.idRemitente === currentUser()?.id">
+                    <div class="message-bubble" [title]="formatearHoraCompleta(msg.fecha)">
+                      <div class="message-content">
+                        @if (esImagen(msg.texto)) {
+                          <img [src]="msg.texto" alt="Imagen adjunta" class="chat-image-attachment" (load)="scrollToBottom()">
+                        } @else {
+                          {{ msg.texto }}
+                        }
+                      </div>
+                      <div class="message-footer">
+                        <span class="message-time">{{ formatearFecha(msg.fecha) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="chat-input-bar">
+            <form (submit)="enviar(); $event.preventDefault()" class="input-form">
+              <button type="button" class="btn-attach" (click)="triggerFileInput()" title="Adjuntar imagen">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                </svg>
+              </button>
+              <input 
+                type="file" 
+                #fileInput 
+                style="display: none;" 
+                accept="image/*" 
+                (change)="onFileSelected($event)"
+              >
+
+              <input 
+                type="text" 
+                [(ngModel)]="textoMensaje" 
+                name="texto" 
+                placeholder="Escribe un mensaje aquí..." 
+                autocomplete="off"
+                maxlength="1000"
+                class="message-input"
+              >
+              <button type="submit" class="btn-send-premium" [disabled]="!textoMensaje().trim()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                <span>ENVIAR</span>
+              </button>
+            </form>
+          </div>
+        } @else {
+          <div class="chat-empty-panel">
+            <div class="empty-glow"></div>
+            <div class="empty-content">
+              <div class="chat-illustration">
+                <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <h2 class="empty-panel-title">TUS CONVERSACIONES</h2>
+              <p>Selecciona a cualquier entrenador de tu lista de chats a la izquierda para ver su historial o iniciar un nuevo mensaje.</p>
+              <button class="btn-browse-sellers-premium" routerLink="/explorar">EXPLORAR CARTAS</button>
+            </div>
+          </div>
+        }
+      </section>
+
+    </div>
+  </main>
+</div>
