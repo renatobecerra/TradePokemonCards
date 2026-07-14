@@ -65,7 +65,7 @@ public class TransaccionController : ControllerBase
             IdItem = invUser.IdItem,
             Texto = mensajeTexto,
             Estado = false,
-            Fecha = DateTime.UtcNow
+            Fecha = DateTime.Now
         };
 
         _context.Mensajes.Add(mensaje);
@@ -89,7 +89,7 @@ public class TransaccionController : ControllerBase
             IdComprador = dto.IdComprador,
             IdInventarioUser = dto.IdInventarioUser,
             Precio = dto.Precio,
-            Fecha = DateTime.UtcNow,
+            Fecha = DateTime.Now,
             Estado = "Completado"
         };
 
@@ -175,7 +175,7 @@ public class TransaccionController : ControllerBase
             IdDestinatario = dto.IdVendedor,
             Texto = $"[SISTEMA_TRATO_CONFIRMADO]{payloadConfirmacionJson}",
             Estado = false,
-            Fecha = DateTime.UtcNow
+            Fecha = DateTime.Now
         };
         _context.Mensajes.Add(mensajeConfirmacion);
 
