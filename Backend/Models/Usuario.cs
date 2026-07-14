@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Backend.Models;
@@ -47,5 +47,7 @@ public partial class Usuario
 
     public virtual ICollection<Notificacione> Notificaciones { get; set; } = new List<Notificacione>();
 
-    public virtual ICollection<Reseña> Reseñas { get; set; } = new List<Reseña>();
+    public virtual ICollection<Reseña> ReseñasHechas { get; set; } = new List<Reseña>();
+
+    public virtual ICollection<Reseña> ReseñasRecibidas { get; set; } = new List<Reseña>();
 }

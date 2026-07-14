@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
@@ -185,25 +185,31 @@ public partial class PokemonMarketContext : DbContext
             entity.ToTable("reseñas");
 
             entity.HasIndex(e => e.IdItem, "FK_Reseña_Item");
-
-            entity.HasIndex(e => e.IdUsuario, "FK_Reseña_Usuario");
+            entity.HasIndex(e => e.IdUsuarioReseñador, "FK_Reseña_Usuario_Reseñador");
+            entity.HasIndex(e => e.IdUsuarioReseñado, "FK_Reseña_Usuario_Reseñado");
 
             entity.Property(e => e.ReseñaId).HasColumnName("Reseña_id");
             entity.Property(e => e.Fecha)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime");
             entity.Property(e => e.IdItem).HasColumnName("ID_Item");
-            entity.Property(e => e.IdUsuario).HasColumnName("ID_Usuario");
+            entity.Property(e => e.IdUsuarioReseñador).HasColumnName("ID_Usuario_Reseñador");
+            entity.Property(e => e.IdUsuarioReseñado).HasColumnName("ID_Usuario_Reseñado");
+            entity.Property(e => e.Calificacion).HasColumnName("Calificacion");
             entity.Property(e => e.Texto).HasColumnType("text");
 
             entity.HasOne(d => d.IdItemNavigation).WithMany(p => p.Reseñas)
                 .HasForeignKey(d => d.IdItem)
                 .HasConstraintName("FK_Reseña_Item");
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Reseñas)
-                .HasForeignKey(d => d.IdUsuario)
+            entity.HasOne(d => d.IdUsuarioReseñadorNavigation).WithMany(p => p.ReseñasHechas)
+                .HasForeignKey(d => d.IdUsuarioReseñador)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Reseña_Usuario");
+                .HasConstraintName("FK_Reseña_Usuario_Reseñador");
+
+            entity.HasOne(d => d.IdUsuarioReseñadoNavigation).WithMany(p => p.ReseñasRecibidas)
+                .HasForeignKey(d => d.IdUsuarioReseñado)
+                .HasConstraintName("FK_Reseña_Usuario_Reseñado");
         });
 
         modelBuilder.Entity<TopRegistro>(entity =>

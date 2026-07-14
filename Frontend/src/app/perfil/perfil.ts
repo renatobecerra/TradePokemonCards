@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { TcgService } from '../services/tcg.service';
+import { ResenaService, Resena } from '../services/resena.service';
 import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from '../utils/password-policy';
 import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
 
@@ -17,6 +18,7 @@ import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
 export class PerfilComponent implements OnInit {
   private authService = inject(AuthService);
   private tcgService = inject(TcgService);
+  private resenaService = inject(ResenaService);
   private router = inject(Router);
 
   public isEditing = signal<boolean>(false);
@@ -44,6 +46,7 @@ export class PerfilComponent implements OnInit {
 
   public currentUser = signal<any>(null);
   public cantidadCartas = signal<number>(0);
+  public misResenas = signal<Resena[]>([]);
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -54,6 +57,14 @@ export class PerfilComponent implements OnInit {
       this.currentUser.set(user);
       this.resetEditData(user);
       this.cargarCantidadCartas(user.id);
+      this.cargarResenas(user.id);
+    });
+  }
+
+  cargarResenas(userId: number) {
+    this.resenaService.getResenasPorUsuario(userId).subscribe({
+      next: (resenas) => this.misResenas.set(resenas),
+      error: (err) => console.error('Error al cargar reseñas:', err)
     });
   }
 

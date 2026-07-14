@@ -3,23 +3,37 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TcgService } from '../services/tcg.service';
 import { CompNavBarComponent } from '../comp-nav-bar/comp-nav-bar';
+import { ResenaService, Resena } from '../services/resena.service';
+import { AuthService } from '../services/auth.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-vendedores-carta',
   standalone: true,
-  imports: [CommonModule, RouterLink, CompNavBarComponent],
+  imports: [CommonModule, RouterLink, CompNavBarComponent, FormsModule],
   templateUrl: './vendedores-carta.html',
   styleUrls: ['./vendedores-carta.css']
 })
 export class VendedoresCartaComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private tcgService = inject(TcgService);
+  private resenaService = inject(ResenaService);
+  private authService = inject(AuthService);
 
   public idTgc = signal<string>('');
   public cardDetails = signal<any>(null);
   public sellers = signal<any[]>([]);
   public loading = signal<boolean>(true);
   public error = signal<string | null>(null);
+
+  // Review Modal State
+  public showReviewModal = signal<boolean>(false);
+  public selectedSeller = signal<any>(null);
+  public newReviewRating = signal<number>(5);
+  public newReviewText = signal<string>('');
+  public reviewSubmitting = signal<boolean>(false);
+  public reviewError = signal<string | null>(null);
+  public reviewSuccess = signal<string | null>(null);
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -98,5 +112,66 @@ export class VendedoresCartaComponent implements OnInit {
       return `$${Math.round(apiPrice * 950).toLocaleString('es-CL')} CLP`;
     }
     return 'N/A';
+  }
+
+  // --- REVIEW LOGIC ---
+  openReviewModal(seller: any) {
+    this.selectedSeller.set(seller);
+    this.newReviewRating.set(5);
+    this.newReviewText.set('');
+    this.showReviewModal.set(true);
+    this.reviewError.set(null);
+  }
+
+  closeReviewModal() {
+    this.showReviewModal.set(false);
+    this.selectedSeller.set(null);
+  }
+
+  setRating(rating: number) {
+    this.newReviewRating.set(rating);
+  }
+
+  submitReview() {
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser) {
+      this.reviewError.set('Debes iniciar sesión para dejar una reseña.');
+      return;
+    }
+
+    const seller = this.selectedSeller();
+    if (!seller) return;
+
+    if (this.newReviewText().trim().length < 5) {
+      this.reviewError.set('La reseña debe tener al menos 5 caracteres.');
+      return;
+    }
+
+    this.reviewSubmitting.set(true);
+    this.reviewError.set(null);
+
+    const resena: Resena = {
+      idUsuarioResenador: currentUser.id,
+      idUsuarioResenado: seller.idUsuario,
+      idItem: null, // Asumimos que reseñamos al usuario (puedes ajustar a seller.idItem si aplica a la carta)
+      calificacion: this.newReviewRating(),
+      texto: this.newReviewText().trim()
+    };
+
+    this.resenaService.crearResena(resena).subscribe({
+      next: (res) => {
+        this.reviewSuccess.set('Reseña creada exitosamente.');
+        setTimeout(() => this.reviewSuccess.set(null), 4000);
+        this.reviewSubmitting.set(false);
+        this.closeReviewModal();
+        // Opcional: recargar datos del vendedor
+        this.cargarDatos(this.idTgc());
+      },
+      error: (err) => {
+        console.error('Error al enviar reseña', err);
+        this.reviewError.set('Hubo un error al guardar la reseña. Inténtalo de nuevo.');
+        this.reviewSubmitting.set(false);
+      }
+    });
   }
 }

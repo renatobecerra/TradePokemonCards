@@ -122,12 +122,18 @@
                     <span class="price-label">Precio Propuesto</span>
                     <span class="price-value-seller">{{ seller.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
                   </div>
-                  <button class="btn-contact">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    CONTACTAR
-                  </button>
+                  <div style="display: flex; gap: 0.5rem; width: 100%;">
+                    <button class="btn-contact" style="flex: 1;">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                      CONTACTAR
+                    </button>
+                    <button class="btn-review" (click)="openReviewModal(seller)">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                      RESEÑAR
+                    </button>
+                  </div>
                 </div>
               </div>
             }
@@ -136,4 +142,57 @@
       </section>
     </div>
   </main>
+
+  <!-- MODAL PARA DEJAR RESEÑA -->
+  @if (showReviewModal()) {
+    <div class="review-modal-overlay">
+      <div class="review-modal-content">
+        <h2 class="review-modal-title">Dejar Reseña</h2>
+        <p class="review-modal-subtitle">Estás calificando a <strong>{{ selectedSeller()?.nombre }} {{ selectedSeller()?.apellido }}</strong>.</p>
+        
+        <div class="form-group">
+          <label class="form-label">Calificación</label>
+          <div class="stars-selector">
+            @for (star of [1,2,3,4,5]; track $index) {
+              <span class="star" (click)="setRating(star)" [class.active]="star <= newReviewRating()">★</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tu Experiencia</label>
+          <textarea class="form-textarea" [(ngModel)]="newReviewText" rows="4" placeholder="¿Cómo fue el intercambio o el trato con este coleccionista?"></textarea>
+        </div>
+
+        @if (reviewError()) {
+          <div class="review-error-msg">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="error-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            {{ reviewError() }}
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closeReviewModal()" [disabled]="reviewSubmitting()">CANCELAR</button>
+          <button class="btn-submit" (click)="submitReview()" [disabled]="reviewSubmitting()">
+            {{ reviewSubmitting() ? 'ENVIANDO...' : 'ENVIAR RESEÑA' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- SUCCESS TOAST -->
+  @if (reviewSuccess()) {
+    <div class="success-toast">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" class="success-icon">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      {{ reviewSuccess() }}
+    </div>
+  }
 </div>
