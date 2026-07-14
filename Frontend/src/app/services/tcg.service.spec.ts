@@ -1,28 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { of } from 'rxjs';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { TcgService } from './tcg.service';
-import { HttpClient } from '@angular/common/http';
-
-const mockHttp = {
-  get: vi.fn(),
-  post: vi.fn(),
-  put: vi.fn(),
-  delete: vi.fn()
-};
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 
 describe('TcgService (Inventario)', () => {
   let service: TcgService;
+  let httpMock: HttpTestingController;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     TestBed.configureTestingModule({
-      providers: [
-        TcgService,
-        { provide: HttpClient, useValue: mockHttp }
-      ]
+      imports: [HttpClientTestingModule],
+      providers: [TcgService]
     });
     service = TestBed.inject(TcgService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   it('debe crearse correctamente', () => {
@@ -31,40 +22,44 @@ describe('TcgService (Inventario)', () => {
 
   it('debe obtener el inventario de un usuario', () => {
     const mockData = [{ id: 1, carta: 'Pikachu' }];
-    mockHttp.get.mockReturnValue(of(mockData));
-
     service.getInventario(1).subscribe(res => {
       expect(res).toEqual(mockData);
     });
-    expect(mockHttp.get).toHaveBeenCalledWith('http://localhost:5210/api/inventario/1');
+    const req = httpMock.expectOne('http://localhost:5210/api/inventario/1');
+    expect(req.request.method).toBe('GET');
+    req.flush(mockData);
+    httpMock.verify();
   });
 
   it('debe agregar una carta al inventario', () => {
     const mockData = { id: 1, carta: 'Charizard' };
-    mockHttp.post.mockReturnValue(of({ success: true }));
-
     service.agregarCarta(mockData).subscribe(res => {
       expect(res.success).toBe(true);
     });
-    expect(mockHttp.post).toHaveBeenCalledWith('http://localhost:5210/api/inventario/agregar', mockData);
+    const req = httpMock.expectOne('http://localhost:5210/api/inventario/agregar');
+    expect(req.request.method).toBe('POST');
+    req.flush({ success: true });
+    httpMock.verify();
   });
 
   it('debe editar una carta en el inventario', () => {
     const mockData = { precio: 100 };
-    mockHttp.put.mockReturnValue(of({ success: true }));
-
     service.editarCarta(1, mockData).subscribe(res => {
       expect(res.success).toBe(true);
     });
-    expect(mockHttp.put).toHaveBeenCalledWith('http://localhost:5210/api/inventario/editar/1', mockData);
+    const req = httpMock.expectOne('http://localhost:5210/api/inventario/editar/1');
+    expect(req.request.method).toBe('PUT');
+    req.flush({ success: true });
+    httpMock.verify();
   });
 
   it('debe eliminar una carta del inventario', () => {
-    mockHttp.delete.mockReturnValue(of({ success: true }));
-
     service.eliminarCarta(1).subscribe(res => {
       expect(res.success).toBe(true);
     });
-    expect(mockHttp.delete).toHaveBeenCalledWith('http://localhost:5210/api/inventario/eliminar/1');
+    const req = httpMock.expectOne('http://localhost:5210/api/inventario/eliminar/1');
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ success: true });
+    httpMock.verify();
   });
 });

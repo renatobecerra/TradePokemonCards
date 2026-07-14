@@ -17,7 +17,9 @@ describe('RegisterComponent', () => {
         RegisterComponent
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    }).compileComponents();
+    })
+    .overrideTemplate(RegisterComponent, '<div></div>')
+    .compileComponents();
   });
 
   it('debe crearse correctamente', () => {

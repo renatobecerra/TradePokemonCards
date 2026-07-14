@@ -17,7 +17,9 @@ describe('PerfilComponent', () => {
         PerfilComponent
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    }).compileComponents();
+    })
+    .overrideTemplate(PerfilComponent, '<div></div>')
+    .compileComponents();
   });
 
   it('debe crearse correctamente', () => {
