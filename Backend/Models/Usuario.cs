@@ -37,6 +37,10 @@ public partial class Usuario
 
     public string? ImgPerfil { get; set; }
 
+    public string? MotivoBaneo { get; set; }
+
+    public DateTime? FechaDesbaneo { get; set; }
+
     public virtual ICollection<Guardado> Guardados { get; set; } = new List<Guardado>();
 
     public virtual ICollection<InventarioUsuario> InventarioUsuarios { get; set; } = new List<InventarioUsuario>();

@@ -10,6 +10,8 @@ import { PerfilComponent } from './perfil/perfil';
 import { TermsComponent } from './terms/terms';
 import { VendedoresCartaComponent } from './vendedores-carta/vendedores-carta';
 import { GuardadosComponent } from './guardados/guardados';
+import { MensajesComponent } from './mensajes/mensajes';
+import { AdminComponent } from './admin/admin';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
@@ -23,5 +25,8 @@ export const routes: Routes = [
   { path: 'perfil', component: PerfilComponent, canActivate: [authGuard] },
   { path: 'vendedores-carta/:idTgc', component: VendedoresCartaComponent, canActivate: [authGuard] },
   { path: 'guardados', component: GuardadosComponent, canActivate: [authGuard] },
+  { path: 'mensajes', component: MensajesComponent, canActivate: [authGuard] },
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard] },
   { path: 'terminos', component: TermsComponent }
 ];
+

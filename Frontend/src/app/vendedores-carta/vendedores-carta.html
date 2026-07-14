@@ -13,7 +13,6 @@
     </div>
 
     <div class="layout-container">
-      <!-- SIDEBAR: DETALLES DE LA CARTA -->
       <aside class="card-details-panel">
         <div class="panel-glow"></div>
         <div class="card-image-box">
@@ -49,7 +48,6 @@
         </div>
       </aside>
 
-      <!-- SECCIÓN PRINCIPAL: LISTADO DE VENDEDORES -->
       <section class="sellers-list-panel">
         <div class="section-header">
           <h1 class="title">VENDEDORES DISPONIBLES<span class="text-accent">.</span></h1>
@@ -122,8 +120,9 @@
                     <span class="price-label">Precio Propuesto</span>
                     <span class="price-value-seller">{{ seller.precio | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
                   </div>
+
                   <div style="display: flex; gap: 0.5rem; width: 100%;">
-                    <button class="btn-contact" style="flex: 1;">
+                    <button class="btn-contact" style="flex: 1;" [routerLink]="['/mensajes']" [queryParams]="{ contactId: seller.idUsuario }">
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                       </svg>
