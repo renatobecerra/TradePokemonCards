@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 
 namespace Backend.Tests.Controllers;
 
-/// <summary>
-/// Tests derivados de los Criterios de Aceptación: Reporte de Usuario
-/// </summary>
+
 public class AdminControllerTests
 {
     private PokemonMarketContext CrearContextoEnMemoria(string dbName)
@@ -32,9 +30,7 @@ public class AdminControllerTests
         context.SaveChanges();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Reportar Usuario
-    // ─────────────────────────────────────────────────────────────
+
     [Fact]
     public async Task CrearReporte_DebeGuardarEnLaBd_CuandoDatosSonValidos()
     {

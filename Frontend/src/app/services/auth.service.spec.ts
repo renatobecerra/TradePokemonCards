@@ -1,21 +1,14 @@
-/**
- * Tests derivados de los Criterios de Aceptación:
- * - Inicio de Sesión
- * - Registro de Usuario
- * - Recuperación de Cuenta
- *
- * Usando Vitest + mocks manuales
- */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { of, throwError } from 'rxjs';
 
-// ─── Mock de HttpClient ────────────────────────────────────────────────────
+
 const mockHttp = {
   get: vi.fn(),
   post: vi.fn()
 };
 
-// ─── Simulación simplificada de AuthService ────────────────────────────────
+
 class AuthServiceMock {
   private apiUrl = 'http://localhost:5210/api/auth';
   private currentUser: any = null;
@@ -48,7 +41,6 @@ class AuthServiceMock {
   }
 }
 
-// ─── Utilidad: validar contraseña segura ─────────────────────────────────
 function validarContrasena(password: string): boolean {
   const minLength = password.length >= 8;
   const tieneUppercase = /[A-Z]/.test(password);
@@ -65,9 +57,7 @@ describe('AuthService', () => {
     vi.clearAllMocks();
   });
 
-  // ─── CA: Inicio de Sesión ───────────────────────────────────────────────
-  // "Al iniciar sesión correctamente, el sistema debe guardar la sesión
-  //  y redirigir a la vista post inicio de sesión."
+
 
   it('debería iniciar sesión correctamente con credenciales válidas', () => {
     // Arrange
@@ -97,7 +87,7 @@ describe('AuthService', () => {
   });
 
   it('debería retornar error cuando las credenciales son incorrectas', () => {
-    // Arrange — CA: "manejo de errores: 'Contraseña incorrecta'"
+
     const errorMock = { error: { mensaje: 'Contraseña incorrecta' }, status: 400 };
     mockHttp.post.mockReturnValue(throwError(() => errorMock));
 
@@ -112,8 +102,7 @@ describe('AuthService', () => {
     expect(errorCapturado.error.mensaje).toBe('Contraseña incorrecta');
   });
 
-  // ─── CA: Registro de Usuario ────────────────────────────────────────────
-  // "La contraseña debe ser validada: mínimo 8 caracteres, mayúscula, número y símbolo."
+
 
   it('debería registrar un usuario con contraseña válida', () => {
     // Arrange
@@ -141,31 +130,30 @@ describe('AuthService', () => {
   });
 
   it('debería rechazar una contraseña débil (sin mayúscula)', () => {
-    // Arrange — CA: "mínimo 8 caracteres, al menos una mayúscula"
+    // Arrange 
     const passwordDebil = 'password1!';
 
-    // Act & Assert
+    // Act y Assert
     expect(validarContrasena(passwordDebil)).toBe(false);
   });
 
   it('debería rechazar una contraseña débil (sin símbolo especial)', () => {
-    // Arrange — CA: "al menos un símbolo especial"
+    // Arrange 
     const passwordDebil = 'Password1';
 
-    // Act & Assert
+    // Act y Assert
     expect(validarContrasena(passwordDebil)).toBe(false);
   });
 
   it('debería aceptar una contraseña fuerte', () => {
-    // Arrange — CA: cumple todos los requisitos
+    // Arrange 
     const passwordFuerte = 'Password123!';
 
-    // Act & Assert
+    // Act y Assert
     expect(validarContrasena(passwordFuerte)).toBe(true);
   });
 
-  // ─── CA: Recuperación de Cuenta ─────────────────────────────────────────
-  // "Si el correo existe, el sistema debe enviar un código de recuperación."
+
 
   it('debería solicitar recuperación de cuenta con correo existente', () => {
     // Arrange
@@ -186,8 +174,7 @@ describe('AuthService', () => {
     );
   });
 
-  // ─── CA: Verificación con código (Google Auth / registro) ───────────────
-  // "Cuando se registre, se solicite un código de verificación que llegará al correo."
+
 
   it('debería verificar el código de confirmación enviado al correo', () => {
     // Arrange
@@ -204,12 +191,12 @@ describe('AuthService', () => {
     expect(resultado.mensaje).toContain('verificada');
   });
 
-  // ─── CA: Cierre de sesión ────────────────────────────────────────────────
+
   it('debería limpiar el usuario actual al cerrar sesión', () => {
-    // Arrange & Act
+    // Arrange y Act
     service.logout();
 
-    // Assert — CA: "Al iniciar sesión, el sistema guarda la sesión"
+    // Assert
     expect(service.currentUserValue).toBeNull();
   });
 });

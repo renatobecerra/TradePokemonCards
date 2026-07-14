@@ -1,21 +1,14 @@
-/**
- * Tests derivados de los Criterios de Aceptación:
- * - Envío de Mensajes
- * - Buzón de Entrada
- *
- * Usando Vitest + mocks manuales (sin Angular TestBed para máxima velocidad)
- */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { of, throwError } from 'rxjs';
 
-// ─── Mock de HttpClient ────────────────────────────────────────────────────
+
 const mockHttp = {
   get: vi.fn(),
   post: vi.fn(),
   delete: vi.fn()
 };
 
-// ─── Clase bajo prueba (importada inline para evitar dependencias de zona) ───
+
 class MensajesServiceMock {
   private apiUrl = 'http://localhost:5210/api/mensajes';
   private unreadCount = 0;
@@ -52,9 +45,7 @@ describe('MensajesService', () => {
     vi.clearAllMocks();
   });
 
-  // ─── CA: Buzón de Entrada ───────────────────────────────────────────────
-  // "La vista del buzón debe mostrar una lista lateral con los usuarios
-  //  con los que tengo chats iniciados."
+
 
   it('debería obtener las conversaciones del usuario', () => {
     // Arrange
@@ -77,7 +68,7 @@ describe('MensajesService', () => {
   });
 
   it('debería retornar lista vacía si no hay conversaciones', () => {
-    // Arrange — CA: "Si el buzón está vacío, mostrar 'Aún no tienes mensajes activos'"
+    // Arrange 
     mockHttp.get.mockReturnValue(of([]));
 
     // Act
@@ -88,8 +79,6 @@ describe('MensajesService', () => {
     expect(resultado).toHaveLength(0);
   });
 
-  // ─── CA: Envío de Mensajes ──────────────────────────────────────────────
-  // "Debe existir un botón de Enviar que se accione también al presionar Enter."
 
   it('debería enviar un mensaje con el texto correcto', () => {
     // Arrange
@@ -119,7 +108,7 @@ describe('MensajesService', () => {
   });
 
   it('debería manejar el error al enviar un mensaje fallido', () => {
-    // Arrange — CA: el sistema debe manejar errores sin romper la UI
+    // Arrange 
     mockHttp.post.mockReturnValue(
       throwError(() => new Error('Error de red'))
     );
@@ -135,7 +124,7 @@ describe('MensajesService', () => {
     expect(errorCapturado.message).toBe('Error de red');
   });
 
-  // ─── CA: Historial de Mensajes ──────────────────────────────────────────
+ 
   it('debería obtener el historial entre dos usuarios', () => {
     // Arrange
     const historialMock = [

@@ -12,9 +12,7 @@ using System.Threading.Tasks;
 
 namespace Backend.Tests.Controllers;
 
-/// <summary>
-/// Tests derivados de los Criterios de Aceptación: Inventario de Cartas
-/// </summary>
+
 public class ItemControllerTests
 {
     private PokemonMarketContext CrearContextoEnMemoria(string dbName)
@@ -59,9 +57,7 @@ public class ItemControllerTests
         context.SaveChanges();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Añadir Carta al Inventario
-    // ─────────────────────────────────────────────────────────────
+
     [Fact]
     public async Task AgregarAlInventario_DebeCrearRegistro_CuandoDatosSonValidos()
     {
@@ -91,9 +87,7 @@ public class ItemControllerTests
         Assert.Equal("Excelente", vinculoGuardado.EstadoFisico);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Ver Inventario de Cartas
-    // ─────────────────────────────────────────────────────────────
+
     [Fact]
     public async Task ObtenerInventario_DebeRetornarCartas_CuandoUsuarioTieneCartas()
     {
@@ -128,9 +122,7 @@ public class ItemControllerTests
         Assert.Empty(inventario);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Eliminar una Carta del Inventario
-    // ─────────────────────────────────────────────────────────────
+
     [Fact]
     public async Task EliminarItem_DebeRemoverCarta_CuandoExiste()
     {
@@ -149,9 +141,6 @@ public class ItemControllerTests
         Assert.Equal(1, actualizado.Cantidad);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Editar Inventario de Cartas
-    // ─────────────────────────────────────────────────────────────
     [Fact]
     public async Task EditarItem_DebeModificarDatos_CuandoEsValido()
     {

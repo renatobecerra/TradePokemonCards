@@ -32,7 +32,7 @@ public class TransaccionControllerTests
         context.InventarioUsuarios.Add(new InventarioUsuario
         {
             IdInventarioUser = 1,
-            IdUsuario = 1, // Vendedor
+            IdUsuario = 1, 
             IdItem = 1,
             Cantidad = 2,
             EstadoFisico = "Buen Estado",
@@ -65,22 +65,22 @@ public class TransaccionControllerTests
         // Assert
         Assert.IsType<OkObjectResult>(result);
 
-        // Verificar que la carta pasó al comprador
+        
         var cartaVendedor = await context.InventarioUsuarios.FirstOrDefaultAsync(i => i.IdUsuario == 1);
         Assert.NotNull(cartaVendedor);
         Assert.Equal(1, cartaVendedor.Cantidad);
 
         var cartaComprador = await context.InventarioUsuarios.FirstOrDefaultAsync(i => i.IdUsuario == 2);
-        Assert.NotNull(cartaComprador); // Ahora la tiene el comprador
+        Assert.NotNull(cartaComprador); 
         Assert.Equal(1, cartaComprador.Cantidad);
 
-        // Verificar que se guardó la transacción
+        
         var transaccion = await context.Transacciones.FirstOrDefaultAsync();
         Assert.NotNull(transaccion);
         Assert.Equal(1, transaccion.IdVendedor);
         Assert.Equal(2, transaccion.IdComprador);
 
-        // Verificar mensaje automático
+        
         var mensaje = await context.Mensajes.FirstOrDefaultAsync();
         Assert.NotNull(mensaje);
         Assert.Contains("[SISTEMA_TRATO_CONFIRMADO]", mensaje.Texto);
