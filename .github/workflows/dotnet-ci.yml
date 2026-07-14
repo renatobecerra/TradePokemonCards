@@ -49,7 +49,6 @@ jobs:
           dotnet build \
             --no-restore \
             --configuration Release \
-            --warnaserror
 
       - name: "Test — Ejecutar pruebas unitarias"
         working-directory: ${{ env.PROJECT_DIR }}

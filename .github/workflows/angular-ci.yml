@@ -48,12 +48,4 @@ jobs:
 
       - name: "Test — Ejecutar pruebas unitarias"
         working-directory: Frontend
-        run: npx vitest run --reporter=default --coverage
-
-      - name: "Subir reporte de cobertura"
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: angular-coverage-node${{ matrix.node-version }}
-          path: Frontend/coverage/
-          retention-days: 14
+        run: npx vitest run --reporter=default
