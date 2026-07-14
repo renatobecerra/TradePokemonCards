@@ -237,7 +237,7 @@ namespace Backend.Controllers
                     }
                 }
 
-                var toRemove = messages.Where(m => m.EliminadoPorRemitente && m.EliminadoPorDestinatario).ToList();
+                var toRemove = messages.Where(m => m.EliminadoPorRemitente == true && m.EliminadoPorDestinatario == true).ToList();
                 if (toRemove.Any())
                 {
                     _context.Mensajes.RemoveRange(toRemove);

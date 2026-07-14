@@ -35,6 +35,8 @@ using (var scope = app.Services.CreateScope())
     try { db.Database.ExecuteSqlRaw("ALTER TABLE usuario ADD COLUMN FechaDesbaneo DATETIME NULL;"); } catch {}
     try { db.Database.ExecuteSqlRaw("ALTER TABLE mensajes ADD COLUMN EliminadoPorRemitente TINYINT(1) DEFAULT 0;"); } catch {}
     try { db.Database.ExecuteSqlRaw("ALTER TABLE mensajes ADD COLUMN EliminadoPorDestinatario TINYINT(1) DEFAULT 0;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("UPDATE mensajes SET EliminadoPorRemitente = 0 WHERE EliminadoPorRemitente IS NULL;"); } catch {}
+    try { db.Database.ExecuteSqlRaw("UPDATE mensajes SET EliminadoPorDestinatario = 0 WHERE EliminadoPorDestinatario IS NULL;"); } catch {}
     try { db.Database.ExecuteSqlRaw("ALTER TABLE transacciones DROP FOREIGN KEY FK_Transacciones_InventarioUser;"); } catch {}
     try {
         db.Database.ExecuteSqlRaw(@"

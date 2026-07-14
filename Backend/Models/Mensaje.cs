@@ -19,9 +19,9 @@ public partial class Mensaje
 
     public DateTime? Fecha { get; set; }
 
-    public bool EliminadoPorRemitente { get; set; } = false;
+    public bool? EliminadoPorRemitente { get; set; } = false;
 
-    public bool EliminadoPorDestinatario { get; set; } = false;
+    public bool? EliminadoPorDestinatario { get; set; } = false;
 
     public virtual Usuario IdDestinatarioNavigation { get; set; } = null!;
 
