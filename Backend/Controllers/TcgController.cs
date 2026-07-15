@@ -82,7 +82,7 @@ namespace Backend.Controllers
                     .ToList();
                 var cardIds = list.Select(c => c.Id).ToList();
 
-                // Consultar promedio de precios en inventario para estas cartas
+                
                 var dbPrices = await _context.InventarioUsuarios
                     .Include(i => i.IdItemNavigation)
                     .Where(i => cardIds.Contains(i.IdItemNavigation.id_tgc) && i.IdItemNavigation.precio != null && i.IdItemNavigation.precio > 0)
@@ -131,7 +131,7 @@ namespace Backend.Controllers
 
                 if (card == null) return NotFound();
 
-                // Buscar promedio en base de datos (inventario local) primero
+                
                 var precios = await _context.InventarioUsuarios
                     .Include(i => i.IdItemNavigation)
                     .Where(i => i.IdItemNavigation.id_tgc == id && i.IdItemNavigation.precio != null && i.IdItemNavigation.precio > 0)

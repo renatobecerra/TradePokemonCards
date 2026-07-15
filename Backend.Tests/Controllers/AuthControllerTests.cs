@@ -8,14 +8,9 @@ using Xunit;
 
 namespace Backend.Tests.Controllers;
 
-/// <summary>
-/// Tests derivados de los Criterios de Aceptación:
-///   - Inicio de Sesión: "manejo de errores: 'Contraseña incorrecta' o 'Usuario no encontrado'"
-///   - Registro de Usuario: validación de campos obligatorios
-/// </summary>
+
 public class AuthControllerTests
 {
-    // ─── Helpers ────────────────────────────────────────────────────────────
 
     private PokemonMarketContext CrearContextoEnMemoria(string dbName)
     {
@@ -25,18 +20,10 @@ public class AuthControllerTests
         return new PokemonMarketContext(options);
     }
 
-    /// <summary>
-    /// Crea una instancia del AuthController con un stub nulo de IEmailService
-    /// (suficiente para tests que no llegan a enviar correo).
-    /// </summary>
+
     private AuthController CrearController(PokemonMarketContext context)
         => new AuthController(new AuthService(context, null!));
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CA: Inicio de Sesión
-    // "El sistema debe validar el correo y la contraseña; en caso de error
-    //  debe mostrar un mensaje claro ('Usuario no encontrado', etc.)."
-    // ─────────────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Login_DebeRetornar400_CuandoElUsuarioNoExiste()
@@ -49,14 +36,14 @@ public class AuthControllerTests
         // Act
         var resultado = await controller.Login(dto);
 
-        // Assert — CA: "Usuario no encontrado"
+        // Assert 
         Assert.IsAssignableFrom<ObjectResult>(resultado);
     }
 
     [Fact]
     public async Task Login_DebeRetornar400_CuandoLaContraseñaEsIncorrecta()
     {
-        // Arrange — usuario registrado con contraseña diferente
+        // Arrange 
         var context = CrearContextoEnMemoria("Login_PasswordIncorrecto");
         context.Usuarios.Add(new Usuario
         {
@@ -64,7 +51,6 @@ public class AuthControllerTests
             Nombre = "Test",
             Apellido = "User",
             Correo = "test@test.com",
-            // Hash de "OtraPassword!" — no coincide con lo que intentará el login
             Contraseña = BCrypt.Net.BCrypt.HashPassword("OtraPassword123!"),
             Rol = "Usuario",
             EsVerificado = true,
@@ -77,14 +63,14 @@ public class AuthControllerTests
         // Act
         var resultado = await controller.Login(dto);
 
-        // Assert — CA: "Contraseña incorrecta"
+        // Assert 
         Assert.IsAssignableFrom<ObjectResult>(resultado);
     }
 
     [Fact]
     public async Task Login_DebeRetornar400_CuandoElCorreoEstaVacio()
     {
-        // Arrange — CA: el formulario valida campos obligatorios
+        // Arrange 
         var context = CrearContextoEnMemoria("Login_CorreoVacio");
         var controller = CrearController(context);
         var dto = new LoginDto { Correo = "", Contraseña = "Password123!" };
@@ -96,13 +82,7 @@ public class AuthControllerTests
         Assert.IsAssignableFrom<ObjectResult>(resultado);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CA: Registro de Usuario
-    // "El formulario debe contener los campos obligatorios: Nombre, Apellido,
-    //  Correo Electrónico y Número de Teléfono."
-    // "La contraseña debe ser validada: mínimo 8 caracteres, al menos una
-    //  mayúscula, un número y un símbolo especial."
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     [Fact]
     public async Task Registrar_DebeRetornar400_CuandoElCorreoYaExiste()
@@ -125,7 +105,7 @@ public class AuthControllerTests
         {
             Nombre = "Nuevo",
             Apellido = "User",
-            Correo = "duplicado@test.com",   // correo ya en uso
+            Correo = "duplicado@test.com",  
             Contraseña = "Password123!",
             Telefono = "555-0000"
         };
@@ -133,14 +113,14 @@ public class AuthControllerTests
         // Act
         var resultado = await controller.Registrar(nuevoUsuario);
 
-        // Assert — CA: no puede existir dos cuentas con el mismo correo
+        // Assert 
         Assert.IsAssignableFrom<ObjectResult>(resultado);
     }
 
     [Fact]
     public async Task Registrar_DebeRetornar400_CuandoLaContraseñaEsDebil()
     {
-        // Arrange — CA: "mínimo 8 caracteres, mayúscula, número y símbolo"
+        // Arrange
         var context = CrearContextoEnMemoria("Registrar_PasswordDebil");
         var controller = CrearController(context);
 
@@ -149,7 +129,7 @@ public class AuthControllerTests
             Nombre = "Ana",
             Apellido = "García",
             Correo = "ana@nuevo.com",
-            Contraseña = "debil",    // no cumple la política
+            Contraseña = "debil",    
             Telefono = "555-9999"
         };
 
@@ -160,18 +140,16 @@ public class AuthControllerTests
         Assert.IsAssignableFrom<ObjectResult>(resultado);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CA: Validación de contraseña (lógica pura — sin base de datos)
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     [Theory]
-    [InlineData("password1!",  false)]  // sin mayúscula
-    [InlineData("Password1",   false)]  // sin símbolo especial
-    [InlineData("Pass!",       false)]  // menos de 8 caracteres
-    [InlineData("password!",   false)]  // sin número
-    [InlineData("PASSWORD1!",  false)]  // sin minúscula (política del backend la requiere)
-    [InlineData("Password1!",  true)]   // cumple todo
-    [InlineData("Segura123!",  true)]   // cumple todo
+    [InlineData("password1!",  false)]  
+    [InlineData("Password1",   false)] 
+    [InlineData("Pass!",       false)]  
+    [InlineData("password!",   false)]  
+    [InlineData("PASSWORD1!",  false)]  
+    [InlineData("Password1!",  true)]  
+    [InlineData("Segura123!",  true)]   
     public void ValidarContraseña_DebeRechazarPasswordsDebiles(string password, bool esperado)
     {
         // Arrange
@@ -186,9 +164,6 @@ public class AuthControllerTests
         Assert.Equal(esperado, esValida);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CA: Ver y Editar Perfil
-    // ─────────────────────────────────────────────────────────────────────────
     [Fact]
     public async Task ActualizarPerfil_DebeModificarDatos_CuandoDatosSonValidos()
     {

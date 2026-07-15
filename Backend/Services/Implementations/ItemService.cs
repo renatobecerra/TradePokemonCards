@@ -132,7 +132,7 @@ namespace Backend.Services.Implementations
             catch (Exception)
             {
                 await transaction.RollbackAsync();
-                throw; // Rethrow to let the controller catch it
+                throw; 
             }
         }
 

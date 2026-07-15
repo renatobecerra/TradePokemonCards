@@ -8,9 +8,7 @@ using Xunit;
 
 namespace Backend.Tests.Controllers;
 
-/// <summary>
-/// Tests derivados de los Criterios de Aceptación: Envío de Mensajes y Buzón de Entrada
-/// </summary>
+
 public class MensajesControllerTests
 {
     private PokemonMarketContext CrearContextoEnMemoria(string dbName)
@@ -46,11 +44,7 @@ public class MensajesControllerTests
         context.SaveChanges();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Envío de Mensajes
-    // "Debe existir un campo de entrada de texto (input) y un botón de
-    //  Enviar que guarda el mensaje en la base de datos."
-    // ─────────────────────────────────────────────────────────────
+
 
     [Fact]
     public async Task EnviarMensaje_DebeGuardarMensajeEnBD_CuandoLosDatosSonValidos()
@@ -124,11 +118,6 @@ public class MensajesControllerTests
         Assert.IsType<NotFoundObjectResult>(resultado);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Buzón de Entrada
-    // "La vista del buzón debe mostrar una lista con los usuarios
-    //  con los que tengo chats iniciados."
-    // ─────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetConversaciones_DebeRetornarListaDeConversaciones_CuandoExistenMensajes()
@@ -163,7 +152,7 @@ public class MensajesControllerTests
     [Fact]
     public async Task GetConversaciones_DebeRetornarListaVacia_CuandoNoHayMensajes()
     {
-        // Arrange — CA: "Si el buzón está vacío, debe mostrar 'Aún no tienes mensajes activos'"
+        // Arrange 
         var context = CrearContextoEnMemoria("GetConversaciones_SinMensajes");
         SembrarDatos(context);
         var controller = new MensajesController(new MensajesService(context));
@@ -181,7 +170,7 @@ public class MensajesControllerTests
     [Fact]
     public async Task GetConversaciones_NoDebeMostrarMensajesEliminados_CuandoElRemitenteLoEliminó()
     {
-        // Arrange — CA: mensajes con EliminadoPorRemitente = true no deben aparecer
+        // Arrange 
         var context = CrearContextoEnMemoria("GetConversaciones_MensajesEliminados");
         SembrarDatos(context);
         context.Mensajes.Add(new Mensaje
@@ -207,10 +196,6 @@ public class MensajesControllerTests
         Assert.Empty(conversaciones);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // CA: Buzón de Entrada — Historial ordenado
-    // "El último mensaje enviado/recibido debe mostrarse como texto previo."
-    // ─────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetHistorial_DebeRetornarMensajesOrdenadosPorFecha_EntreDosusuarios()

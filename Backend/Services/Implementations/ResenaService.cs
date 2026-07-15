@@ -68,7 +68,7 @@ namespace Backend.Services.Implementations
                 return (false, "La reseña debe estar asociada a un usuario o a una carta.");
             }
 
-            // Verificar si el usuario ya ha dejado una reseña a este vendedor
+            
             if (dto.IdUsuarioResenado.HasValue)
             {
                 var reseñaExistente = await _context.Reseñas
@@ -79,7 +79,7 @@ namespace Backend.Services.Implementations
                     return (false, "Ya has dejado una reseña para este usuario anteriormente.");
                 }
 
-                // NUEVA VALIDACIÓN: Verificar que exista una transacción completada entre ambos
+               
                 var transaccionExistente = await _context.Transacciones
                     .AnyAsync(t => 
                         (t.IdVendedor == dto.IdUsuarioResenado && t.IdComprador == dto.IdUsuarioResenador && t.Estado == "Completado") ||
@@ -105,7 +105,7 @@ namespace Backend.Services.Implementations
             _context.Reseñas.Add(nuevaResena);
             await _context.SaveChangesAsync();
 
-            // Si la reseña es para un usuario, actualizar su calificación promedio
+            
             if (nuevaResena.IdUsuarioReseñado.HasValue)
             {
                 await ActualizarCalificacionUsuario(nuevaResena.IdUsuarioReseñado.Value);

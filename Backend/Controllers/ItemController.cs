@@ -16,7 +16,7 @@ namespace Backend.Controllers
             _itemService = itemService;
         }
 
-        // GET: api/catalogo
+        
         [HttpGet]
         public async Task<IActionResult> ObtenerCatalogo()
         {
@@ -31,7 +31,7 @@ namespace Backend.Controllers
             }
         }
 
-        // POST: api/catalogo/guardar
+       
         [HttpPost("guardar")]
         public async Task<IActionResult> GuardarItem([FromBody] GuardarItemDto datos)
         {
@@ -51,7 +51,7 @@ namespace Backend.Controllers
             }
         }
 
-        // GET: api/catalogo/guardados/{idUsuario}
+        
         [HttpGet("guardados/{idUsuario}")]
         public async Task<IActionResult> ObtenerGuardados(int idUsuario)
         {
@@ -66,7 +66,7 @@ namespace Backend.Controllers
             }
         }
 
-        // DELETE: api/catalogo/guardados/eliminar/{idUsuario}/{idItem}
+        
         [HttpDelete("guardados/eliminar/{idUsuario}/{idItem}")]
         public async Task<IActionResult> EliminarGuardado(int idUsuario, int idItem)
         {
@@ -86,7 +86,7 @@ namespace Backend.Controllers
             }
         }
 
-        // POST: api/catalogo/guardar-tgc
+        
         [HttpPost("guardar-tgc")]
         public async Task<IActionResult> GuardarTgcItem([FromBody] GuardarTgcDto datos)
         {
@@ -106,7 +106,7 @@ namespace Backend.Controllers
             }
         }
 
-        // GET: api/catalogo/top
+        
         [HttpGet("top")]
         public async Task<IActionResult> ObtenerTopRegistros()
         {

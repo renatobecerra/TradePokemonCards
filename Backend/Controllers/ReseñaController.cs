@@ -16,7 +16,7 @@ namespace Backend.Controllers
             _resenaService = resenaService;
         }
 
-        // Obtener reseñas de un usuario
+        
         [HttpGet("usuario/{id}")]
         public async Task<IActionResult> GetResenasPorUsuario(int id)
         {
@@ -24,7 +24,7 @@ namespace Backend.Controllers
             return Ok(resenas);
         }
 
-        // Obtener reseñas de una carta
+        
         [HttpGet("carta/{id}")]
         public async Task<IActionResult> GetResenasPorCarta(int id)
         {
@@ -32,7 +32,7 @@ namespace Backend.Controllers
             return Ok(resenas);
         }
 
-        // Crear una nueva reseña
+        
         [HttpPost]
         public async Task<IActionResult> PostResena([FromBody] ResenaDto dto)
         {

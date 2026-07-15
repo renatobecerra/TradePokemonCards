@@ -26,7 +26,7 @@ public class ResenaControllerTests
         context.Usuarios.Add(new Usuario { IdUsuarios = 1, Nombre = "Comprador", Correo = "a@a.com", Contraseña = "1" });
         context.Usuarios.Add(new Usuario { IdUsuarios = 2, Nombre = "Vendedor", Correo = "b@b.com", Contraseña = "2" });
         
-        // El controlador verifica si hay transacciones completadas para permitir reseñar
+        
         context.Transacciones.Add(new Transaccion { 
             IdTransaccion = 1,
             IdVendedor = 2,

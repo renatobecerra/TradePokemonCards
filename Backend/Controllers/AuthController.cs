@@ -225,7 +225,6 @@ namespace Backend.Controllers
                     return NotFound(new { mensaje });
                 }
 
-                // Obtener perfil actualizado para retornar
                 var (_, _, perfil) = await _authService.GetPerfilPublicoAsync(datos.UsuarioId);
                 
                 return Ok(new
